@@ -20,7 +20,7 @@ The repository is structured as follows:
 
 - Each folder represents a specific scenario or exercise.
 - Inside each folder, you'll find the Java source code file(s) corresponding to that scenario (README.md).
-
+```bash
 JAVA_OOP_EXERCISES/
 │
 ├── MedicalCenter/
@@ -36,7 +36,7 @@ JAVA_OOP_EXERCISES/
 │   └── MedicalCenter/src/it/polito/library/
 │
 └── ...
-
+```
 ## How to Use
 
 To utilize this repository:
