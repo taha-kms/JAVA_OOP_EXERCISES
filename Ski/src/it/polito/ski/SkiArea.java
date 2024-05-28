@@ -1,23 +1,33 @@
 package it.polito.ski;
 
 import java.io.IOException;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class SkiArea {
+
+	private String name;
+	private Map<String, LiftType> liftTypeMap;
+	private Map<String, Lift> liftsMap;
+	private Map<String, Slope> slopesMap;
 
 	/**
 	 * Creates a new ski area
 	 * @param name name of the new ski area
 	 */
 	public SkiArea(String name) {
+		this.name = name;
+		this.liftTypeMap = new HashMap<>();
+		this.liftsMap = new HashMap<>();
+		this.slopesMap = new HashMap<>();
+
     }
 
 	/**
 	 * Retrieves the name of the ski area
 	 * @return name
 	 */
-	public String getName() { return null; }
+	public String getName() { return this.name; }
 
     /**
      * define a new lift type providing the code, the category (Cable Cabin, Chair, Ski-lift)
@@ -30,6 +40,9 @@ public class SkiArea {
      */
     public void liftType(String code, String category, int capacity) throws InvalidLiftException {
 
+		if(this.liftTypeMap.containsKey(code) || capacity <= 0) throw new InvalidLiftException();
+
+		this.liftTypeMap.put(code, new LiftType(code, category, capacity));
     }
     
     /**
@@ -39,7 +52,9 @@ public class SkiArea {
      * @throws InvalidLiftException if the code has not been defined
      */
     public String getCategory(String typeCode) throws InvalidLiftException {
-		return null;
+		if(!this.liftTypeMap.containsKey(typeCode)) throw new InvalidLiftException();
+
+		return this.liftTypeMap.get(typeCode).getCategory();
     }
 
     /**
@@ -49,7 +64,9 @@ public class SkiArea {
      * @throws InvalidLiftException if the code has not been defined
      */
     public int getCapacity(String typeCode) throws InvalidLiftException {
-        return -1;
+		if(!this.liftTypeMap.containsKey(typeCode)) throw new InvalidLiftException();
+
+		return this.liftTypeMap.get(typeCode).getCapacity();
     }
 
 
@@ -58,7 +75,7 @@ public class SkiArea {
      * @return the list of codes
      */
 	public Collection<String> types() {
-		return null;
+		return this.liftTypeMap.keySet();
 	}
 	
 	/**
@@ -69,6 +86,10 @@ public class SkiArea {
 	 * @throws InvalidLiftException in case the lift type is not defined
 	 */
     public void createLift(String name, String typeCode) throws InvalidLiftException{
+		if(!this.types().contains(typeCode)) throw new InvalidLiftException();
+
+		LiftType type = this.liftTypeMap.get(typeCode);
+		this.liftsMap.put(name, new Lift(name, type));
 
     }
     
@@ -78,7 +99,7 @@ public class SkiArea {
 	 * @return type of the lift
 	 */
 	public String getType(String lift) {
-		return null;
+		return this.liftsMap.get(lift).getType().getCode();
 	}
 
 	/**
@@ -86,7 +107,7 @@ public class SkiArea {
 	 * @return the list of names sorted alphabetically
 	 */
 	public List<String> getLifts(){
-		return null;
+		return this.liftsMap.values().stream().map(Lift::getName).sorted().collect(Collectors.toList());
     }
 
 	/**
@@ -97,8 +118,11 @@ public class SkiArea {
 	 * @throws InvalidLiftException in case the lift has not been defined
 	 */
     public void createSlope(String name, String difficulty, String lift) throws InvalidLiftException {
+		if(!this.getLifts().contains(lift)) throw new InvalidLiftException();
 
-    }
+		Lift intendedLift = this.liftsMap.get(lift);
+		this.slopesMap.put(name, new Slope(name, difficulty, intendedLift));
+    }	
     
     /**
      * retrieves the name of the slope
@@ -106,7 +130,7 @@ public class SkiArea {
      * @return difficulty
      */
 	public String getDifficulty(String slopeName) {
-		return null;
+		return this.slopesMap.get(slopeName).getDifficulty();
 	}
 
 	/**
@@ -115,7 +139,7 @@ public class SkiArea {
 	 * @return starting lift
 	 */
 	public String getStartLift(String slopeName) {
-		return null;
+		return this.slopesMap.get(slopeName).getLift().getName();
 	}
 
 	/**
@@ -124,7 +148,7 @@ public class SkiArea {
 	 * @return list of slopes
 	 */
     public Collection<String> getSlopes(){
-		return null;
+		return this.slopesMap.keySet();
     }
 
     /**
@@ -134,7 +158,7 @@ public class SkiArea {
      * @return the list of slopes
      */
     public Collection<String> getSlopesFrom(String lift){
-		return null;
+		return this.slopesMap.values().stream().filter(s -> s.getLift().getName().equals(lift)).map(s -> s.getLift().getName()).collect(Collectors.toList());
     }
 
     /**
