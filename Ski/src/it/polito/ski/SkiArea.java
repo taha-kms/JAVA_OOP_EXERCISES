@@ -10,7 +10,7 @@ public class SkiArea {
 	private Map<String, LiftType> liftTypeMap;
 	private Map<String, Lift> liftsMap;
 	private Map<String, Slope> slopesMap;
-
+	private Map<String, Parking> parkingsMap;
 	/**
 	 * Creates a new ski area
 	 * @param name name of the new ski area
@@ -20,6 +20,7 @@ public class SkiArea {
 		this.liftTypeMap = new HashMap<>();
 		this.liftsMap = new HashMap<>();
 		this.slopesMap = new HashMap<>();
+		this.parkingsMap = new HashMap<>();
 
     }
 
@@ -168,6 +169,7 @@ public class SkiArea {
      */
     public void createParking(String name, int slots){
 
+		this.parkingsMap.put(name, new Parking(name, slots));
     }
 
     /**
@@ -176,7 +178,7 @@ public class SkiArea {
      * @return number of slots
      */
 	public int getParkingSlots(String parking) {
-		return -1;
+		return this.parkingsMap.get(parking).getSlotNum();
 	}
 
 	/**
@@ -186,6 +188,8 @@ public class SkiArea {
 	 */
 	public void liftServedByParking(String lift, String parking) {
 
+		Lift intendedLift = this.liftsMap.get(lift);
+		this.parkingsMap.get(parking).addToServedList(intendedLift);
 	}
 
 	
@@ -195,7 +199,7 @@ public class SkiArea {
 	 * @return the list of lifts
 	 */
 	public Collection<String> servedLifts(String parking) {
-		return null;
+		return this.parkingsMap.get(parking).getServedLifts().stream().map(Lift::getName).collect(Collectors.toList());
 	}
 
 	/**
@@ -207,7 +211,7 @@ public class SkiArea {
 	 * @return true if the parking is proportionate
 	 */
 	public boolean isParkingProportionate(String parkingName) {
-		return false;
+		return this.parkingsMap.get(parkingName).isProportionate();
 	}
 
 	/**
