@@ -38,6 +38,6 @@ public class Parking {
 
         for(Lift lift: this.servedLifts) {sum = lift.getType().getCapacity() + sum;}
     
-        return ((this.slotNum / sum) > 30);
+        return ((this.slotNum / sum) < 30);
     }
 }
