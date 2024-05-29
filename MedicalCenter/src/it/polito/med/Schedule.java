@@ -1,6 +1,7 @@
 package it.polito.med;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class Schedule {
     
@@ -9,14 +10,14 @@ public class Schedule {
     String date;
     int duration;
 
-    List<String> slots;
+    Map<String, Slot> slots;
 
     public Schedule(String date, String start, String end, int duration){
         this.date = date;
         this.start = start;
         this.end = end;
         this.duration = duration;
-        this.slots = new ArrayList<>();
+        this.slots = new HashMap<>();
         this.defineSlots();
     }
 
@@ -33,7 +34,7 @@ public class Schedule {
     }
     
     public List<String> getSlots() {
-        return this.slots;
+        return this.slots.values().stream().map(Slot::getInfo).collect(Collectors.toList());
     }
     
     public String getStart() {
@@ -69,7 +70,7 @@ public class Schedule {
             String result = startTime + "-" + endTime;
 
 
-            this.slots.add(result);
+            this.slots.put(result, new Slot(this.date, result));
             lastSlotHour = newSlotHour;
             lastSlotMin = newSlotMin;
         }
@@ -78,5 +79,12 @@ public class Schedule {
 
     public int getSlotsSize(){
        return this.slots.size();
+    
     }
+
+    public Slot getSlot(String time){
+        return this.slots.get(time);
+
+    }
+    
 }

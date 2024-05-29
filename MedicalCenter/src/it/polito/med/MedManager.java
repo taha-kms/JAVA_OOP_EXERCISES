@@ -5,14 +5,19 @@ import java.util.stream.Collectors;
 
 public class MedManager {
 
-
-    public Map<String, List<Doctor>> specialityMap;
-    public Map<String, Doctor> doctorsMap;
+    private Integer nextAppointmentId;
+    private Map<String, Patient> patientMap;
+    private Map<String, Appointment> appointmentMap;
+    private Map<String, List<Doctor>> specialityMap;
+    private Map<String, Doctor> doctorsMap;
     
     
     public MedManager(){
+        this.nextAppointmentId = 1000;
+        this.appointmentMap = new HashMap<>();
         this.specialityMap = new HashMap<>();
         this.doctorsMap = new HashMap<>();
+        this.patientMap = new HashMap<>();
     }
 	/**
 	 * add a set of medical specialities to the list of specialities
@@ -101,7 +106,7 @@ public class MedManager {
 	 */
 	public int addDailySchedule(String code, String date, String start, String end, int duration) {
 
-        this.doctorsMap.get(code).dailySchedule.put(date, new Schedule(date, start, end, duration));
+        this.doctorsMap.get(code).getSchedules().put(date, new Schedule(date, start, end, duration));
 
         
 		return this.doctorsMap.get(code).getSlotNumber(date);
@@ -121,7 +126,7 @@ public class MedManager {
         Map<String, List<String>> result = new HashMap<>();
 
         for(Doctor doctor: this.specialityMap.get(speciality)){
-            List<String> slots = doctor.dailySchedule.get(date).getSlots();
+            List<String> slots = doctor.getSchedules().get(date).getSlots();
             String doctorId = doctor.getId();
 
             result.put(doctorId, slots);
@@ -141,8 +146,26 @@ public class MedManager {
 	 * @return a unique id for the appointment
 	 * @throws MedException	in case of invalid code, date or slot
 	 */
-	public String setAppointment(String ssn, String name, String surname, String code, String date, String slot) throws MedException {
-		return null;
+	public String setAppointment(String ssn, String name, String surname, String code, String date, String givenSlot) throws MedException {
+        if(
+            !this.doctorsMap.containsKey(code) ||
+            !this.doctorsMap.get(code).getSchedules().containsKey(date) ||
+            !this.doctorsMap.get(code).getSchedules().get(date).getSlots().contains(givenSlot)
+        ){
+            throw new MedException("setAppointment ERROR");
+        } 
+
+        this.patientMap.put(ssn, new Patient(ssn, name, surname));
+
+        String appointmentId = "APP" + this.nextAppointmentId;
+        Patient patient = this.patientMap.get(ssn);
+        Doctor doctor = this.doctorsMap.get(code);
+        Slot slot = this.doctorsMap.get(code).getSchedules().get(date).getSlot(givenSlot);
+
+        this.appointmentMap.put(appointmentId, new Appointment(patient, doctor, slot));
+        this.nextAppointmentId++;
+
+		return appointmentId;
 	}
 
 	/**
@@ -152,7 +175,7 @@ public class MedManager {
 	 * @return doctor code id
 	 */
 	public String getAppointmentDoctor(String idAppointment) {
-		return null;
+		return this.appointmentMap.get(idAppointment).getDoctor().getId();
 	}
 
 	/**
@@ -162,7 +185,7 @@ public class MedManager {
 	 * @return doctor patient ssn
 	 */
 	public String getAppointmentPatient(String idAppointment) {
-		return null;
+		return this.appointmentMap.get(idAppointment).getPatient().getSsn();
 	}
 
 	/**
@@ -172,7 +195,7 @@ public class MedManager {
 	 * @return time of appointment
 	 */
 	public String getAppointmentTime(String idAppointment) {
-		return null;
+		return this.appointmentMap.get(idAppointment).getSlot().getStart();
 	}
 
 	/**
@@ -182,7 +205,7 @@ public class MedManager {
 	 * @return date
 	 */
 	public String getAppointmentDate(String idAppointment) {
-		return null;
+		return this.appointmentMap.get(idAppointment).getDate();
 	}
 
 	/**
@@ -195,7 +218,11 @@ public class MedManager {
 	 * @return list of appointments
 	 */
 	public Collection<String> listAppointments(String code, String date) {
-		return null;
+		return this.appointmentMap.values().stream()
+                                           .filter(a -> a.getDate().equals(date))
+                                           .filter(a -> a.getDoctor().getId().equals(code))
+                                           .map(Appointment::toString)
+                                           .collect(Collectors.toList());
 	}
 
 	/**

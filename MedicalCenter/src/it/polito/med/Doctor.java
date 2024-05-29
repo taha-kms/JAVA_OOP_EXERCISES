@@ -7,7 +7,7 @@ public class Doctor {
     private String name; 
     private String surname; 
     private String speciality;
-    public Map<String , Schedule> dailySchedule;
+    private Map<String , Schedule> dailySchedule;
 
     public Doctor(String id, String name, String surname, String speciality){
         this.id = id;
@@ -30,6 +30,11 @@ public class Doctor {
     
     public String getSurname() {
         return surname;
+    }
+
+    public Map<String , Schedule> getSchedules(){
+        
+        return this.dailySchedule;
     }
 
     public int getSlotNumber(String date){
