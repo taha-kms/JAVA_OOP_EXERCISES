@@ -6,12 +6,12 @@ import java.util.stream.Collectors;
 public class MedManager {
 
 
-    private Set<String> specialitySet;
-    private Map<String, Doctor> doctorsMap;
+    public Map<String, List<Doctor>> specialityMap;
+    public Map<String, Doctor> doctorsMap;
     
     
     public MedManager(){
-        this.specialitySet = new TreeSet<>();
+        this.specialityMap = new HashMap<>();
         this.doctorsMap = new HashMap<>();
     }
 	/**
@@ -24,7 +24,7 @@ public class MedManager {
 	 */
 	public void addSpecialities(String... specialities) {
         for (String string : specialities) {
-            this.specialitySet.add(string);
+            this.specialityMap.putIfAbsent(string, new ArrayList<>());
         }
 	}
 
@@ -34,7 +34,7 @@ public class MedManager {
 	 * @return list of specialities
 	 */
 	public Collection<String> getSpecialities() {
-		return this.specialitySet;
+		return this.specialityMap.keySet();
 	}
 	
 	
@@ -48,9 +48,12 @@ public class MedManager {
 	 * @throws MedException in case of duplicate id or non-existing speciality
 	 */
 	public void addDoctor(String id, String name, String surname, String speciality) throws MedException {
-        if(!this.specialitySet.contains(speciality) || this.doctorsMap.containsKey(id)) throw new MedException("addDoctor error");
+        if(!this.specialityMap.containsKey(speciality) || this.doctorsMap.containsKey(id)) throw new MedException("addDoctor error");
 
-        this.doctorsMap.put(id, new Doctor(id, name, surname, speciality));
+        Doctor newDoctor = new Doctor(id, name, surname, speciality);
+        
+        this.doctorsMap.put(id, newDoctor);
+        this.specialityMap.get(speciality).add(newDoctor);
 
 	}
 
@@ -97,7 +100,11 @@ public class MedManager {
 	 * @return the number of slots defined
 	 */
 	public int addDailySchedule(String code, String date, String start, String end, int duration) {
-		return -1;
+
+        this.doctorsMap.get(code).dailySchedule.put(date, new Schedule(date, start, end, duration));
+
+        
+		return this.doctorsMap.get(code).getSlotNumber(date);
 	}
 
 	/**
@@ -111,7 +118,15 @@ public class MedManager {
 	 * @return a map doc-id -> list of slots in the schedule
 	 */
 	public Map<String, List<String>> findSlots(String date, String speciality) {
-		return null;
+        Map<String, List<String>> result = new HashMap<>();
+
+        for(Doctor doctor: this.specialityMap.get(speciality)){
+            List<String> slots = doctor.dailySchedule.get(date).getSlots();
+            String doctorId = doctor.getId();
+
+            result.put(doctorId, slots);
+        }
+		return result;
 	}
 
 	/**
