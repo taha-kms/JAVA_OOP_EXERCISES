@@ -4,12 +4,10 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class Schedule {
-    
     String start;
     String end;
     String date;
     int duration;
-
     Map<String, Slot> slots;
 
     public Schedule(String date, String start, String end, int duration){
@@ -24,23 +22,22 @@ public class Schedule {
     public String getDate() {
         return this.date;
     }
-    
+
     public int getDuration() {
         return this.duration;
     }
-    
+
     public String getEnd() {
         return this.end;
     }
-    
+
     public List<String> getSlots() {
         return this.slots.values().stream().map(Slot::getInfo).collect(Collectors.toList());
     }
-    
+
     public String getStart() {
         return this.start;
     }
-
 
     public void defineSlots() {
         int startHour = Integer.parseInt(start.split(":")[0]);
@@ -59,16 +56,13 @@ public class Schedule {
             int newSlotHour = lastSlotHour + (newSlotMin / 60);
             newSlotMin = newSlotMin % 60;
     
-            // If the new slot is beyond the end time, break the loop
             if (newSlotHour > endHour || (newSlotHour == endHour && newSlotMin > endMinute)) {
                 break;
             }
     
- 
             String startTime = String.format("%02d:%02d", lastSlotHour, lastSlotMin);
             String endTime = String.format("%02d:%02d", newSlotHour, newSlotMin);
             String result = startTime + "-" + endTime;
-
 
             this.slots.put(result, new Slot(this.date, result));
             lastSlotHour = newSlotHour;
@@ -76,15 +70,11 @@ public class Schedule {
         }
     }
 
-
     public int getSlotsSize(){
        return this.slots.size();
-    
     }
 
     public Slot getSlot(String time){
         return this.slots.get(time);
-
     }
-    
 }

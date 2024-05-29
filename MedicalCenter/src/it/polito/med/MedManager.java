@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 public class MedManager {
 
     private Integer nextAppointmentId;
+    private String currentDate;
     private Map<String, Patient> patientMap;
     private Map<String, Appointment> appointmentMap;
     private Map<String, List<Doctor>> specialityMap;
@@ -13,6 +14,7 @@ public class MedManager {
     
     
     public MedManager(){
+        this.currentDate = null;
         this.nextAppointmentId = 1000;
         this.appointmentMap = new HashMap<>();
         this.specialityMap = new HashMap<>();
@@ -162,7 +164,7 @@ public class MedManager {
         Doctor doctor = this.doctorsMap.get(code);
         Slot slot = this.doctorsMap.get(code).getSchedules().get(date).getSlot(givenSlot);
 
-        this.appointmentMap.put(appointmentId, new Appointment(patient, doctor, slot));
+        this.appointmentMap.put(appointmentId, new Appointment(appointmentId,patient, doctor, slot));
         this.nextAppointmentId++;
 
 		return appointmentId;
@@ -233,7 +235,15 @@ public class MedManager {
 	 * @return the number of total appointments for the day
 	 */
 	public int setCurrentDate(String date) {
-		return -1;
+
+        int totAppointment = 0;
+        this.currentDate = date;
+        for (Appointment appointment : this.appointmentMap.values()) {
+            if(appointment.getDate().equals(date)){
+                totAppointment++;
+            }
+        }
+		return totAppointment;
 	}
 
 	/**
@@ -242,7 +252,9 @@ public class MedManager {
 	 * @param ssn SSN of the patient
 	 */
 	public void accept(String ssn) {
-
+        this.appointmentMap.values().stream()
+									.filter(a -> a.getPatient().getSsn().equals(ssn))
+									.forEach(a -> a.setAsAccepted());
 	}
 
 	/**
@@ -255,7 +267,18 @@ public class MedManager {
 	 * @return appointment id
 	 */
 	public String nextAppointment(String code) {
-		return null;
+        
+		return this.appointmentMap.values().stream()
+										   .filter(a -> a.getDate().equals(this.currentDate))
+										   .filter(a -> a.getDoctor().getId().equals(code))
+										   .filter(a -> !a.isCompleted())
+										   .filter(a -> a.isAccepted())
+										   .sorted(Comparator.comparing(a -> a.getId()))  // Sort by appointment start time
+										   .map(Appointment::getId)
+										   .findFirst()
+										   .orElse(null);
+										   
+
 	}
 
 	/**
@@ -272,7 +295,27 @@ public class MedManager {
 	 */
 	public void completeAppointment(String code, String appId)  throws MedException {
 
-	}
+        if (!this.appointmentMap.containsKey(appId)) {
+            throw new MedException("Appointment ID is not valid");
+        }
+    
+        Appointment appointment = this.appointmentMap.get(appId);
+    
+        if (!appointment.getDoctor().getId().equals(code)) {
+            throw new MedException("Appointment is with another doctor");
+        }
+    
+        if (!appointment.isAccepted()) {
+            throw new MedException("Patient has not been accepted");
+        }
+    
+        if (!appointment.getDate().equals(this.currentDate)) {
+            throw new MedException("Appointment is not for the current day");
+        }
+    
+        appointment.setAsCompleted();
+    }
+	
 
 	/**
 	 * computes the show rate for the appointments of a doctor on a given date.
@@ -282,9 +325,20 @@ public class MedManager {
 	 * @param date		reference date
 	 * @return	no show rate
 	 */
-	public double showRate(String code, String date) {
-		return -1.0;
-	}
+    public double showRate(String code, String date) {
+
+        long totalAppointments = this.appointmentMap.values().stream()
+                .filter(a -> a.getDoctor().getId().equals(code) && a.getDate().equals(date))
+                .count();
+
+        long acceptedAppointments = this.appointmentMap.values().stream()
+                .filter(a -> a.getDoctor().getId().equals(code) && a.getDate().equals(date) && a.isAccepted())
+                .count();
+
+        if (totalAppointments == 0) return 0.0;
+
+        return (double) acceptedAppointments / totalAppointments;
+    }
 
 	/**
 	 * computes the schedule completeness for all doctors of the med centre.
@@ -294,10 +348,27 @@ public class MedManager {
 	 * 
 	 * @return the map id : completeness
 	 */
-	public Map<String, Double> scheduleCompleteness() {
-		return null;
-	}
+    public Map<String, Double> scheduleCompleteness() {
+        Map<String, Double> result = new HashMap<>();
 
+        for (Doctor doctor : this.doctorsMap.values()) {
+            long totalSlots = doctor.getSchedules().values().stream()
+                    .mapToLong(Schedule::getSlotsSize)
+                    .sum();
+
+            long totalAppointments = this.appointmentMap.values().stream()
+                    .filter(a -> a.getDoctor().getId().equals(doctor.getId()))
+                    .count();
+
+            if (totalSlots == 0) {
+                result.put(doctor.getId(), 0.0);
+            } else {
+                result.put(doctor.getId(), (double) totalAppointments / totalSlots);
+            }
+        }
+
+        return result;
+    }
 
 	
 }
