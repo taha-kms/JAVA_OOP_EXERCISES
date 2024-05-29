@@ -3,6 +3,9 @@ package it.polito.ski;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.io.BufferedReader;
+import java.io.FileReader;
+
 
 public class SkiArea {
 
@@ -41,7 +44,7 @@ public class SkiArea {
      */
     public void liftType(String code, String category, int capacity) throws InvalidLiftException {
 
-		if(this.liftTypeMap.containsKey(code) || capacity <= 0) throw new InvalidLiftException();
+		if(this.liftTypeMap.containsKey(code) || capacity <= 0) throw new InvalidLiftException("<liftType Error>");
 
 		this.liftTypeMap.put(code, new LiftType(code, category, capacity));
     }
@@ -230,7 +233,30 @@ public class SkiArea {
 	 * @throws InvalidLiftException in case of duplicate type or non-existent lift type
 	 */
     public void readLifts(String path) throws IOException, InvalidLiftException {
-
+        try (BufferedReader br = new BufferedReader(new FileReader(path))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                String[] fields = line.trim().split("\\s*;\\s*");
+                try {
+                    if (fields.length < 3) continue;
+                    if (fields[0].equals("T")) {
+                        if (fields.length != 4) continue;
+                        String code = fields[1];
+                        String category = fields[2];
+                        int capacity = Integer.parseInt(fields[3]);
+                        this.liftType(code, category, capacity);
+                    } else if (fields[0].equals("L")) {
+                        if (fields.length != 3) continue;
+                        String name = fields[1];
+                        String typeCode = fields[2];
+                        this.createLift(name, typeCode);
+                    }
+                } catch (NumberFormatException | InvalidLiftException e) {
+                    // Log error and skip to the next line
+                    System.err.println("Error processing line: " + line);
+                }
+            }
+        }
     }
-
 }
+

@@ -52,14 +52,21 @@ public class TestExample {
         assertTrue(vl.isParkingProportionate("Jouvenceaux"));
 
         String path = writeFile(
-        		"T;S2;Chairlift;2\n" +
-        		"L;Cime Bianche;S2"
+            "T ; S2 ; chairlift ; 2\n" +
+            "T ; G ; gondola ; 8\n" +
+            "T ; S1 ; Montana ; 2\n" +
+            "T ; S4P ; seggiovia ; 4\n" +
+            "L ; Baby ; C\n" +
+            "L ; CimeBianche ; S2\n" +
+            "L ; Alpina ; G\n" +
+            "L ; Pioneer ; C\n" +
+            "L ; Eagle ; S4P\n" 
         		);
         
         vl.readLifts(path);
         
         assertEquals(2, vl.getCapacity("S2"));
-        assertEquals("S2", vl.getType("Cime Bianche"));
+        assertEquals("S2", vl.getType("CimeBianche"));
     }
 
     
