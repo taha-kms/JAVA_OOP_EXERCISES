@@ -57,4 +57,8 @@ public class Order {
         this.isPending = false;
     }
 
+    public Restaurant getRestaurant(){
+        return this.restaurant;
+    }
+
 }

@@ -259,7 +259,18 @@ public class Delivery {
 	 * @return map category -> order count
 	 */
 	public Map<String,Long> ordersPerCategory() {
-        return null;
+		Map<String,Long> result = new HashMap<>();
+
+		for (String cat : catagoryList) {
+			Long countLong = this.orderMap.values().stream()
+											       .filter(order -> order.getRestaurant().getCategory().equals(cat))
+												   .count();
+
+			result.put(cat, countLong);
+
+			
+		}
+        return result;
 	}
 	
 	/**
@@ -268,6 +279,10 @@ public class Delivery {
 	 * @return restaurant name
 	 */
 	public String bestRestaurant() {
-        return null;
+        return this.restaurantMap.values().stream()
+								 .sorted(Comparator.comparing(Restaurant::getAverageRating).reversed())
+								 .map(Restaurant::getName)
+								 .findFirst()
+								 .orElse(null);
 	}
 }
