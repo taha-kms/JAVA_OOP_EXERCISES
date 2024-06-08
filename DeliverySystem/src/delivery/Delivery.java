@@ -1,8 +1,8 @@
 package delivery;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+
+import java.util.*;
+import java.util.stream.Collectors;
 
 
 public class Delivery {
@@ -13,7 +13,7 @@ public class Delivery {
 
 	public Delivery() {
 		this.catagoryList = new ArrayList<>();
-		this.restaurantMap = new java.util.HashMap<>();
+		this.restaurantMap = new HashMap<>();
 	}
     /**
      * adds one category to the list of categories managed by the service.
@@ -63,8 +63,13 @@ public class Delivery {
 	public List<String> getRestaurantsForCategory(String category) {
 
 		
-        return this.restaurantMap.values().stream().filter(restaurant -> restaurant.getCatagory().equals(category)).map(Restaurant::getName).sorted(null).toList();
-	}
+        return this.restaurantMap.values().stream()
+                						  .filter(restaurant -> restaurant.getCategory().equals(category))
+                						  .map(Restaurant::getName)
+                						  .sorted()
+                						  .collect(Collectors.toList());
+    }
+	
 	
 	// R2
 	
@@ -78,6 +83,11 @@ public class Delivery {
 	 * @throws DeliveryException if the dish name already exists
 	 */
 	public void addDish(String name, String restaurantName, float price) throws DeliveryException {
+		if (this.restaurantMap.containsKey(restaurantName)) {
+			this.restaurantMap.get(restaurantName).addDish(name, price);
+		} else {
+			throw new DeliveryException("Restaurant does not exist");
+		}
 	}
 	
 	/**
@@ -90,7 +100,24 @@ public class Delivery {
 	 * @return map restaurant -> dishes
 	 */
 	public Map<String,List<String>> getDishesByPrice(float minPrice, float maxPrice) {
-        return null;
+
+		Map<String,List<String>> result = new java.util.HashMap<>();
+
+		for(Restaurant restaurant : this.restaurantMap.values()) {
+			List<String> dishes = restaurant.getDishes();
+			List<String> dishesInRange = new ArrayList<>();
+			for (String dish : dishes) {
+				if (restaurant.getDish(dish).getPrice() >= minPrice && restaurant.getDish(dish).getPrice() <= maxPrice) {
+					dishesInRange.add(dish);
+				}
+			}
+
+			if(!dishesInRange.isEmpty()){
+				result.put(restaurant.getName(), dishesInRange);
+			}
+		}
+
+        return result;
 	}
 	
 	/**
@@ -102,7 +129,7 @@ public class Delivery {
 	 * @return alphabetically sorted list of dish names 
 	 */
 	public List<String> getDishesForRestaurant(String restaurantName) {
-        return null;
+        return this.restaurantMap.get(restaurantName).getDishes().stream().sorted().collect(Collectors.toList());
 	}
 	
 	/**
@@ -114,7 +141,15 @@ public class Delivery {
 	 * @return 
 	 */
 	public List<String> getDishesByCategory(String category) {
-        return null;
+		
+		List<String> result = new ArrayList<>();
+
+		for(Restaurant restaurant : this.restaurantMap.values()) {
+			if(restaurant.getCategory().equals(category)) {
+				result.addAll(restaurant.getDishes());
+			}
+		}
+        return result;
 	}
 	
 	//R3
