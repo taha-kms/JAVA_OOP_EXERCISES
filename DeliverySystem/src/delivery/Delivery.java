@@ -13,6 +13,7 @@ public class Delivery {
 	private Map<String, Restaurant> restaurantMap;
 
 
+
 	public Delivery() {
 		this.nextOrderID = 1;
 		this.catagoryList = new ArrayList<>();
@@ -232,6 +233,7 @@ public class Delivery {
 	 * @param rating           rating
 	 */
 	public void setRatingForRestaurant(String restaurantName, int rating) {
+		this.restaurantMap.get(restaurantName).addRating(rating);
 	}
 	
 	/**
@@ -243,7 +245,10 @@ public class Delivery {
 	 * @return ordered list of restaurant names
 	 */
 	public List<String> restaurantsAverageRating() {
-        return null;
+        return this.restaurantMap.values().stream()
+										  .sorted(Comparator.comparing(Restaurant::getAverageRating).reversed())
+										  .map(Restaurant::getName)
+										  .collect(Collectors.toList());
 	}
 	
 	//R5
