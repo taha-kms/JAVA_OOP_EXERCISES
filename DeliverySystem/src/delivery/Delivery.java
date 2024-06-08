@@ -7,12 +7,16 @@ import java.util.stream.Collectors;
 
 public class Delivery {
 	// R1
+	private int nextOrderID;
 	private List<String> catagoryList;
+	private Map<Integer, Order> orderMap;
 	private Map<String, Restaurant> restaurantMap;
 
 
 	public Delivery() {
+		this.nextOrderID = 1;
 		this.catagoryList = new ArrayList<>();
+		this.orderMap = new HashMap<>();
 		this.restaurantMap = new HashMap<>();
 	}
     /**
@@ -171,7 +175,14 @@ public class Delivery {
 	 * @return order ID
 	 */
 	public int addOrder(String dishNames[], int quantities[], String customerName, String restaurantName, int deliveryTime, int deliveryDistance) {
-	    return -1;
+
+		Restaurant resturant = this.restaurantMap.get(restaurantName); 
+		Integer orderId = this.nextOrderID;
+		this.nextOrderID++;
+
+		
+		this.orderMap.put(orderId, new Order(orderId, dishNames, quantities, customerName, resturant, deliveryTime, deliveryDistance));
+	    return orderId;
 	}
 	
 	/**
@@ -190,7 +201,18 @@ public class Delivery {
 	 * @return list of order IDs
 	 */
 	public List<Integer> scheduleDelivery(int deliveryTime, int maxDistance, int maxOrders) {
-        return null;
+        
+		List<Integer> result = this.orderMap.values().stream()
+													 .filter(order -> order.getDeliveryTime() == deliveryTime && order.getDeliveryDistance() <= maxDistance)
+													 .limit(maxOrders)
+													 .map(Order::getOrderID)
+													 .collect(Collectors.toList());
+	
+
+		for (Integer id : result) this.orderMap.get(id).setAssigned();
+		return result;
+
+		
 	}
 	
 	/**
@@ -198,7 +220,7 @@ public class Delivery {
 	 * @return the unassigned orders count
 	 */
 	public int getPendingOrders() {
-        return -1;
+        return (int) this.orderMap.values().stream().filter(Order::isPending).count();
 	}
 	
 	// R4
