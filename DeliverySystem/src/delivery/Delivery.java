@@ -1,12 +1,20 @@
 package delivery;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 
 public class Delivery {
 	// R1
-	
+	private List<String> catagoryList;
+	private Map<String, Restaurant> restaurantMap;
+
+
+	public Delivery() {
+		this.catagoryList = new ArrayList<>();
+		this.restaurantMap = new java.util.HashMap<>();
+	}
     /**
      * adds one category to the list of categories managed by the service.
      * 
@@ -14,6 +22,10 @@ public class Delivery {
      * @throws DeliveryException if the category is already available.
      */
 	public void addCategory (String category) throws DeliveryException {
+		if (this.catagoryList.contains(category)) {
+			throw new DeliveryException("Category already exists");
+		}
+		this.catagoryList.add(category);
 	}
 	
 	/**
@@ -22,7 +34,7 @@ public class Delivery {
 	 * @return list of category names
 	 */
 	public List<String> getCategories() {
-		return null;
+		return this.catagoryList;
 	}
 	
 	/**
@@ -33,6 +45,11 @@ public class Delivery {
 	 * @throws DeliveryException if the category is not defined.
 	 */
 	public void addRestaurant (String name, String category) throws DeliveryException {
+		if (!this.catagoryList.contains(category)) {
+			throw new DeliveryException("Category does not exist");
+		}
+		Restaurant restaurant = new Restaurant(name, category);
+		this.restaurantMap.put(name, restaurant);
 	}
 	
 	/**
@@ -44,7 +61,9 @@ public class Delivery {
 	 * @return sorted list of restaurant names
 	 */
 	public List<String> getRestaurantsForCategory(String category) {
-        return null;
+
+		
+        return this.restaurantMap.values().stream().filter(restaurant -> restaurant.getCatagory().equals(category)).map(Restaurant::getName).sorted(null).toList();
 	}
 	
 	// R2
