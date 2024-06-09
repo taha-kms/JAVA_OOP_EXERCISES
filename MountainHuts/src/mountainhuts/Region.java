@@ -67,22 +67,16 @@ public class Region {
 	 */
 	public String getAltitudeRange(Integer altitude) {
 
-		String result = "0-INF";
+		for (String range : this.altitudeRangesList) {
+			String[] bounds = range.split("-");
+			Integer minValue = Integer.parseInt(bounds[0]);
+			Integer maxValue = Integer.parseInt(bounds[1]);
 
-		if (this.altitudeRangesList.isEmpty()) {
-			return result;
-		} else {
-			for (String range : this.altitudeRangesList) {
-				String[] bounds = range.split("-");
-				Integer minValue = Integer.parseInt(bounds[0]);
-				Integer maxValue = Integer.parseInt(bounds[1]);
-	
-				if (altitude >= minValue && altitude <= maxValue) {
-					return range;
-				}
+			if (altitude >= minValue && altitude <= maxValue) {
+				return range;
 			}
 		}
-		return result;
+		return "0-INF";
 	}
 
 	/**
@@ -186,8 +180,37 @@ public class Region {
 	 *            the path of the file
 	 */
 	public static Region fromFile(String name, String file) {
-		return null;
+		Region region = new Region(name);
+		List<String> lines = readData(file);
+
+		if (lines.size() <= 1) {
+			return region; // No data to process
+		}
+
+		// Skip header line and process data lines
+		lines.stream().skip(1).forEach(line -> {
+			String[] fields = line.split(";");
+			String province = fields[0].trim();
+			String municipalityName = fields[1].trim();
+			Integer municipalityAltitude = Integer.parseInt(fields[2].trim());
+			String hutName = fields[3].trim();
+			String altitudeStr = fields[4].trim();
+			Integer hutAltitude = altitudeStr.isEmpty() ? null : Integer.parseInt(altitudeStr);
+			String category = fields[5].trim();
+			Integer bedsNumber = Integer.parseInt(fields[6].trim());
+
+			Municipality municipality = region.createOrGetMunicipality(municipalityName, province, municipalityAltitude);
+
+			if (hutAltitude == null) {
+				region.createOrGetMountainHut(hutName, category, bedsNumber, municipality);
+			} else {
+				region.createOrGetMountainHut(hutName, hutAltitude, category, bedsNumber, municipality);
+			}
+		});
+
+		return region;
 	}
+	
 
 	/**
 	 * Reads the lines of a text file.
@@ -212,7 +235,14 @@ public class Region {
 	 *         value
 	 */
 	public Map<String, Long> countMunicipalitiesPerProvince() {
-		return null;
+
+		Map<String, Long> result = new HashMap<>();
+		for (Municipality municipality : this.municipalityMap.values()) {
+			String province = municipality.getProvince();
+			result.put(province, result.getOrDefault(province, Long.valueOf(0)) + 1);
+			
+		}
+		return result;
 	}
 
 	/**
@@ -222,7 +252,23 @@ public class Region {
 	 *         municipality as key and the number of mountain huts as value
 	 */
 	public Map<String, Map<String, Long>> countMountainHutsPerMunicipalityPerProvince() {
-		return null;
+
+		Map<String, Map<String, Long>> result = new HashMap<>();
+		for (MountainHut hut : this.mountainHutMap.values()) {
+			String province = hut.getMunicipality().getProvince();
+			String municipalityName = hut.getMunicipality().getName();
+			
+			result.putIfAbsent(province, new HashMap<>());
+			Map<String, Long> municipalityMap = result.get(province);
+	
+			if (municipalityMap.containsKey(municipalityName)) {
+				municipalityMap.put(municipalityName, municipalityMap.get(municipalityName) + 1);
+			} else {
+				municipalityMap.put(municipalityName, 1L);
+			}
+		}
+	
+		return result;
 	}
 
 	/**
@@ -233,7 +279,20 @@ public class Region {
 	 *         as value
 	 */
 	public Map<String, Long> countMountainHutsPerAltitudeRange() {
-		return null;
+
+		Map<String, Long> result = new HashMap<>();
+		for (MountainHut hut : this.mountainHutMap.values()) {
+			int altitude = hut.getAltitude().orElse(hut.getMunicipality().getAltitude());
+			String range = getAltitudeRange(altitude);
+	
+			if (result.containsKey(range)) {
+				result.put(range, result.get(range) + 1);
+			} else {
+				result.put(range, 1L);
+			}
+		}
+	
+		return result;
 	}
 
 	/**
@@ -243,7 +302,20 @@ public class Region {
 	 * @return a map with the province as key and the total number of beds as value
 	 */
 	public Map<String, Integer> totalBedsNumberPerProvince() {
-		return null;
+		Map<String, Integer> result = new HashMap<>();
+
+		for (MountainHut hut : this.mountainHutMap.values()) {
+			String province = hut.getMunicipality().getProvince();
+			int beds = hut.getBedsNumber();
+	
+			if (result.containsKey(province)) {
+				result.put(province, result.get(province) + beds);
+			} else {
+				result.put(province, beds);
+			}
+		}
+	
+		return result;
 	}
 
 	/**
@@ -255,7 +327,18 @@ public class Region {
 	 *         as value
 	 */
 	public Map<String, Optional<Integer>> maximumBedsNumberPerAltitudeRange() {
-		return null;
+		Map<String, Optional<Integer>> result = new HashMap<>();
+
+		for (MountainHut hut : this.mountainHutMap.values()) {
+			int altitude = hut.getAltitude().orElse(hut.getMunicipality().getAltitude());
+			String range = getAltitudeRange(altitude);
+			int beds = hut.getBedsNumber();
+	
+			result.putIfAbsent(range, Optional.of(beds));
+			result.compute(range, (k, v) -> Optional.of(Math.max(v.orElse(0), beds)));
+		}
+	
+		return result;
 	}
 
 	/**
@@ -266,7 +349,33 @@ public class Region {
 	 *         list of municipality names as value
 	 */
 	public Map<Long, List<String>> municipalityNamesPerCountOfMountainHuts() {
-		return null;
+		Map<String, Long> hutsCountPerMunicipality = new HashMap<>();
+
+		for (MountainHut hut : this.mountainHutMap.values()) {
+			String municipalityName = hut.getMunicipality().getName();
+			
+			if (hutsCountPerMunicipality.containsKey(municipalityName)) {
+				hutsCountPerMunicipality.put(municipalityName, hutsCountPerMunicipality.get(municipalityName) + 1);
+			} else {
+				hutsCountPerMunicipality.put(municipalityName, 1L);
+			}
+		}
+	
+		Map<Long, List<String>> result = new HashMap<>();
+	
+		for (Map.Entry<String, Long> entry : hutsCountPerMunicipality.entrySet()) {
+			String municipalityName = entry.getKey();
+			Long count = entry.getValue();
+	
+			result.putIfAbsent(count, new ArrayList<>());
+			result.get(count).add(municipalityName);
+		}
+	
+		for (List<String> municipalityNames : result.values()) {
+			Collections.sort(municipalityNames);
+		}
+	
+		return result;
 	}
 
 }
