@@ -19,6 +19,8 @@ public class Region {
 
 	private String regionName;
 	private List<String> altitudeRangesList;
+	private Map<String, Municipality> municipalityMap;
+	private Map<String, MountainHut> mountainHutMap;
 
 	/**
 	 * Create a region with the given name.
@@ -30,6 +32,9 @@ public class Region {
 		
 		this.regionName = name;
 		this.altitudeRangesList = new ArrayList<>();
+		this.municipalityMap = new HashMap<>();
+		this.mountainHutMap = new HashMap<>();
+
 	}
 
 	/**
@@ -88,7 +93,7 @@ public class Region {
 	 * @return a collection of municipalities
 	 */
 	public Collection<Municipality> getMunicipalities() {
-		return null;
+		return Collections.unmodifiableCollection(this.municipalityMap.values());
 	}
 
 	/**
@@ -99,7 +104,7 @@ public class Region {
 	 * @return a collection of mountain huts
 	 */
 	public Collection<MountainHut> getMountainHuts() {
-		return null;
+		return Collections.unmodifiableCollection(this.mountainHutMap.values());
 	}
 
 	/**
@@ -115,7 +120,8 @@ public class Region {
 	 * @return the municipality
 	 */
 	public Municipality createOrGetMunicipality(String name, String province, Integer altitude) {
-		return null;
+		
+		return this.municipalityMap.computeIfAbsent(name,k -> new Municipality(name, province, altitude));
 	}
 
 	/**
@@ -132,9 +138,9 @@ public class Region {
 	 *            the municipality in which the mountain hut is located
 	 * @return the mountain hut
 	 */
-	public MountainHut createOrGetMountainHut(String name, String category, Integer bedsNumber,
-			Municipality municipality) {
-		return null;
+	public MountainHut createOrGetMountainHut(String name, String category, Integer bedsNumber, Municipality municipality) {
+
+		return this.mountainHutMap.computeIfAbsent(name, k -> new MountainHut(name, category, bedsNumber, municipality));
 	}
 
 	/**
@@ -153,9 +159,8 @@ public class Region {
 	 *            the municipality in which the mountain hut is located
 	 * @return a mountain hut
 	 */
-	public MountainHut createOrGetMountainHut(String name, Integer altitude, String category, Integer bedsNumber,
-			Municipality municipality) {
-		return null;
+	public MountainHut createOrGetMountainHut(String name, Integer altitude, String category, Integer bedsNumber,Municipality municipality) {
+		return this.mountainHutMap.computeIfAbsent(name, k -> new MountainHut(name, altitude, category, bedsNumber, municipality));
 	}
 
 	/**

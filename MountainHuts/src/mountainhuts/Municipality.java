@@ -6,19 +6,26 @@ package mountainhuts;
  * 
  */
 public class Municipality {
+	private String name;
+	private String province;
+	private Integer altitude;
+
 	public Municipality(String name, String province, Integer altitude) {
+		this.name = name;
+		this.province = province;
+		this.altitude = altitude;
 	}
 
 	public String getName() {
-		return null;
+		return this.name;
 	}
 
 	public String getProvince() {
-		return null;
+		return this.province;
 	}
 
 	public Integer getAltitude() {
-		return null;
+		return this.altitude;
 	}
 
 }
