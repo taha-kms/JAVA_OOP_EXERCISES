@@ -17,6 +17,9 @@ import static java.util.stream.Collectors.*;
  */
 public class Region {
 
+	private String regionName;
+	private List<String> altitudeRangesList;
+
 	/**
 	 * Create a region with the given name.
 	 * 
@@ -24,6 +27,9 @@ public class Region {
 	 *            the name of the region
 	 */
 	public Region(String name) {
+		
+		this.regionName = name;
+		this.altitudeRangesList = new ArrayList<>();
 	}
 
 	/**
@@ -32,7 +38,7 @@ public class Region {
 	 * @return the name of the region
 	 */
 	public String getName() {
-		return null;
+		return this.regionName;
 	}
 
 	/**
@@ -43,7 +49,7 @@ public class Region {
 	 *            an array of textual ranges
 	 */
 	public void setAltitudeRanges(String... ranges) {
-
+		for(String alt: ranges) this.altitudeRangesList.add(alt);
 	}
 
 	/**
@@ -55,7 +61,23 @@ public class Region {
 	 * @return a string representing the range
 	 */
 	public String getAltitudeRange(Integer altitude) {
-		return null;
+
+		String result = "0-INF";
+
+		if (this.altitudeRangesList.isEmpty()) {
+			return result;
+		} else {
+			for (String range : this.altitudeRangesList) {
+				String[] bounds = range.split("-");
+				Integer minValue = Integer.parseInt(bounds[0]);
+				Integer maxValue = Integer.parseInt(bounds[1]);
+	
+				if (altitude >= minValue && altitude <= maxValue) {
+					return range;
+				}
+			}
+		}
+		return result;
 	}
 
 	/**
