@@ -8,7 +8,7 @@ Exceptions in the methods described below are of `MeetException` type.
 
 The [JDK documentation](https://oop.polito.it/api/) is located on the local server.
 
-The Italian version of these requirements is available in [README_it.md](README_it.md).
+
 
 
 R1: Categories and Meetings
