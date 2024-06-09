@@ -11,39 +11,26 @@ import java.util.Optional;
  *
  */
 public class MountainHut {
-
-	private String name;
-	private Optional<Integer> altitude;
-	private String category;
-	private Integer bedsNumber;
-	private Municipality municipality;
-
 	public MountainHut(String name, Integer altitude, String category, Integer bedsNumber, Municipality municipality) {
-
-		this.name = name;
-		this.altitude = Optional.ofNullable(altitude);
-		this.category = category;
-		this.bedsNumber = bedsNumber;
-		this.municipality = municipality;
 	}
 
 	public String getName() {
-		return this.name;
+		return null;
 	}
 
 	public Optional<Integer> getAltitude() {
-		return this.altitude;
+		return null;
 	}
 
 	public String getCategory() {
-		return this.category;
+		return null;
 	}
 
 	public Integer getBedsNumber() {
-		return this.bedsNumber;
+		return null;
 	}
 
 	public Municipality getMunicipality() {
-		return this.municipality;
+		return null;
 	}
 }
