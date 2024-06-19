@@ -246,18 +246,44 @@ public class ReviewServer {
 * @param reviewId	the id of the review
 	 * @return the map data -> slot preferences
 	 */
-	public Map<String, List<String>> reviewPreferences(String reviewId) {
-		return null;
+	public Map<String, List<String>> reviewPreferences(String reviewId) throws ReviewException {
+		if (!this.reviewMap.containsKey(reviewId)) {
+			throw new ReviewException("Invalid review ID");
+		}
+
+		Map<String, List<String>> result = new HashMap<>();
+		for (Map.Entry<String, List<Slot>> entry : this.reviewMap.get(reviewId).getSlotMap().entrySet()) {
+			String date = entry.getKey();
+			List<String> slotPreferences = entry.getValue().stream()
+					.filter(slot -> slot.getPreferenceSize() > 0)
+					.map(slot -> slot.toString() + "=" + slot.getPreferenceSize())
+					.collect(Collectors.toList());
+			
+			if (!slotPreferences.isEmpty()) {
+				result.put(date, slotPreferences);
+			}
+		}
+
+		return result;
 	}
 
-
 	/**
-	 * computes the number preferences collected for each review
-	 * The result is a map that associates to each review id the relative count of preferences expressed
+	 * Computes the number of preferences collected for each review.
+	 * The result is a map that associates to each review ID the relative count of preferences expressed.
 	 * 
 	 * @return the map id : preferences -> count
 	 */
 	public Map<String, Integer> preferenceCount() {
-		return null;
+		Map<String, Integer> result = new HashMap<>();
+
+		for (Review review : this.reviewMap.values()) {
+			int totalPreferences = review.getSlotMap().values().stream()
+				.flatMap(List::stream)
+				.mapToInt(Slot::getPreferenceSize)
+				.sum();
+			result.put(review.getId(), totalPreferences);
+		}
+
+		return result;
 	}
 }
