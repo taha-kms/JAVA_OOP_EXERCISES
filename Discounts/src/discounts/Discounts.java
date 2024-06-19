@@ -3,19 +3,32 @@ import java.util.*;
 
 public class Discounts {
 
+	private Integer nextCardNum;
+	private Map<Integer, String> cardsMap;
+
+
+	public Discounts(){
+
+		this.nextCardNum = 1;
+		this.cardsMap = new HashMap<>();
+	}
 	
 	//R1
 	public int issueCard(String name) {
-	    return -1;
+		int newCardNum = this.nextCardNum;
+		this.cardsMap.put(newCardNum, name);
+		this.nextCardNum++;
+
+	    return newCardNum;
 	}
 	
     public String cardHolder(int cardN) {
-        return null;
+        return this.cardsMap.get(cardN);
     }
     
 
 	public int nOfCards() {
-	       return -1;
+	       return this.cardsMap.size();
 
 	}
 	
