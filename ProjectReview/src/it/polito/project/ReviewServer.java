@@ -1,11 +1,20 @@
 package it.polito.project;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 
 public class ReviewServer {
+
+	private Set<String> groupsSet;
+	private Map<String, Review> reviewMap;
+	private Integer nextReviewId;
+
+	public ReviewServer(){
+		this.nextReviewId = 100;
+		this.groupsSet = new TreeSet<>();
+		this.reviewMap = new HashMap<>();
+	}
 
 	/**
 	 * adds a set of student groups to the list of groups
@@ -15,7 +24,7 @@ public class ReviewServer {
 	 * @param groups the project groups
 	 */
 	public void addGroups(String... groups) {
-
+		for (String group : groups) this.groupsSet.add(group);
 	}
 
 	/**
@@ -24,7 +33,7 @@ public class ReviewServer {
 	 * @return list of groups
 	 */
 	public Collection<String> getGroups() {
-		return null;
+		return this.groupsSet;
 	}
 	
 	
@@ -38,7 +47,13 @@ public class ReviewServer {
 	 * @throws ReviewException in case of non-existing group
 	 */
 	public String addReview(String title, String topic, String group) throws ReviewException {
-		return null;
+		if(!this.groupsSet.contains(group)) throw new ReviewException();
+
+		String newReviewId = "R-" + Integer.toString(this.nextReviewId);
+
+		this.reviewMap.put(newReviewId, new Review(newReviewId, title, topic, group));
+		this.nextReviewId++;
+		return newReviewId;
 	}
 
 	/**
@@ -48,7 +63,10 @@ public class ReviewServer {
 	 * @return list of review ids
 	 */
 	public Collection<String> getReviews(String group) {
-		return null;
+		return this.reviewMap.values().stream()
+									  .filter(r -> r.getGroup().equals(group))
+									  .map(Review::getId)
+									  .collect(Collectors.toList());
 	}
 
 	/**
@@ -58,7 +76,7 @@ public class ReviewServer {
 	 * @return the title
 	 */
 	public String getReviewTitle(String reviewId) {
-		return null;
+		return this.reviewMap.get(reviewId).getTitle();
 	}
 
 	/**
@@ -68,7 +86,7 @@ public class ReviewServer {
 	 * @return the topic of the review
 	 */
 	public String getReviewTopic(String reviewId) {
-		return null;
+		return this.reviewMap.get(reviewId).getTopic();
 	}
 
 	// R2
