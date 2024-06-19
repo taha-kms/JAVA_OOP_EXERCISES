@@ -37,7 +37,7 @@ public class TestApp {
 
 		double price = d.getPrice("p4");
 		assertEquals(10.6, price, 0.001);
-
+		
 		assertThrows(DiscountsException.class,
 			()->d.addProduct("c2", "p4", 3.1));
 
