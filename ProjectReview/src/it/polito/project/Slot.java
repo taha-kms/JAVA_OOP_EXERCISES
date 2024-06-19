@@ -1,17 +1,23 @@
 package it.polito.project;
 
+import java.util.*;
+
 public class Slot {
     
     String date;
     String start;
     String end;
     double length;
+    boolean poolStatus;
+    List<Preference> preferenceList;
 
     public Slot(String date, String start, String end){
         this.date = date;
         this.start = start;
         this.end = end;
         this.length = calculateLength();
+        this.poolStatus = false;
+        this.preferenceList = new ArrayList<>();
     }
 
     public String getDate() {
@@ -46,5 +52,18 @@ public class Slot {
 
     public String toString(){
         return this.start + "-" + this.end;
+    }
+
+    public int addPreference(String email, String name, String surname){
+        this.preferenceList.add(new Preference(email,name,surname));
+        return getPreferenceSize();
+    }
+    
+    public int getPreferenceSize(){
+        return this.preferenceList.size();
+    }
+
+    public List<Preference> getPreferenceList() {
+        return this.preferenceList;
     }
 }

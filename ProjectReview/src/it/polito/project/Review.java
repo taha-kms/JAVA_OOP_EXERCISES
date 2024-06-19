@@ -4,6 +4,8 @@ import java.util.*;
 
 public class Review {
 
+    private boolean poolStatus;
+
     private String id;
     private String title;
     private String group;
@@ -16,6 +18,8 @@ public class Review {
         this.id = id;
         this.group = group;
         this.slotsMap = new HashMap<>();
+        this.poolStatus = false;
+
     }
 
     public String getGroup() {
@@ -32,10 +36,6 @@ public class Review {
 
     public String getTopic() {
         return topic;
-    }
-    
-    public Map<String, List<Slot>> getSlotsMap(){
-        return this.slotsMap;
     }
 
 	public boolean isOverlapped(String date, String start, String end) {
@@ -55,4 +55,27 @@ public class Review {
 		return newSlot.getLength();
 	}
 
+    public boolean isPoolOpen(){
+        return this.poolStatus;
+    }
+
+    public void setPoolOpen(){
+        this.poolStatus = true;
+    }
+
+    public void setPoolClose(){
+        this.poolStatus = false;
+    }
+
+    public Slot getSlot(String date,String slot) throws ReviewException{
+        
+        for (Slot savedSlot : this.slotsMap.getOrDefault(date, new ArrayList<>())) {
+            if(savedSlot.toString().equals(slot)) return savedSlot;
+        }
+        return null;
+    }
+
+    public Map<String, List<Slot>> getSlotMap(){
+        return this.slotsMap;
+    }
 }

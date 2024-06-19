@@ -120,7 +120,7 @@ public class ReviewServer {
 	public Map<String, List<String>> showSlots(String reviewId) {
 
 		Map<String, List<String>> result = new HashMap<>();
-		Map<String, List<Slot>> slotsMap = this.reviewMap.get(reviewId).getSlotsMap();
+		Map<String, List<Slot>> slotsMap = this.reviewMap.get(reviewId).getSlotMap();
 
 		for (Map.Entry<String, List<Slot>> options : slotsMap.entrySet()) {
 			String date = options.getKey();
@@ -137,9 +137,8 @@ public class ReviewServer {
 	 * @param reviewId	is of the review
 	 */
 	public void openPoll(String reviewId) {
-		return;
+		this.reviewMap.get(reviewId).setPoolOpen();
 	}
-
 
 	/**
 	 * Records a preference of a student for a specific slot/option of a review.
@@ -155,7 +154,16 @@ public class ReviewServer {
 	 * @throws ReviewException	in case of invalid id or slot
 	 */
 	public int selectPreference(String email, String name, String surname, String reviewId, String date, String slot) throws ReviewException {
-		return -1;
+		if (!this.reviewMap.containsKey(reviewId)) throw new ReviewException("Invalid review ID");
+		
+		if (!this.reviewMap.get(reviewId).isPoolOpen()) {
+			throw new ReviewException("Poll is not open");
+		}
+
+		Slot reviewSlot = this.reviewMap.get(reviewId).getSlot(date, slot);
+		if (reviewSlot == null)	throw new ReviewException("Invalid slot");
+		
+		return reviewSlot.addPreference(email, name, surname);
 	}
 
 	/**
@@ -168,7 +176,24 @@ public class ReviewServer {
 	 * @return list of preferences for the review
 	 */
 	public Collection<String> listPreferences(String reviewId) {
-		return null;
+
+		List<String> result = new ArrayList<>();
+	
+		for(Map.Entry<String, List<Slot>> entry : this.reviewMap.get(reviewId).getSlotMap().entrySet()) {
+
+			String date = entry.getKey();
+			for (Slot slot : entry.getValue()) {
+
+				String timeRanges = slot.toString();
+				for (Preference preference : slot.getPreferenceList()) {
+					
+					String email = preference.getEmail();
+					result.add(date+ "T" + timeRanges + "=" + email);
+				}
+			}
+			
+		}
+		return result;
 	}
 
 	/**
@@ -181,8 +206,31 @@ public class ReviewServer {
 	 * @param reviewId	id of the review
 	 */
 	public Collection<String> closePoll(String reviewId) {
-		return null;
-	}
+
+        Review review = this.reviewMap.get(reviewId);
+        review.setPoolClose();
+
+        Map<String, Integer> slotPreferences = new HashMap<>();
+
+
+		for (Map.Entry<String, List<Slot>> entry : review.getSlotMap().entrySet()) {
+            String date = entry.getKey();
+            for (Slot slot : entry.getValue()) {
+                String slotKey = date + "T" + slot.toString();
+                slotPreferences.put(slotKey, slot.getPreferenceSize());
+            }
+        }
+
+        int maxPreferences = slotPreferences.values().stream().max(Integer::compare).orElse(0);
+
+        List<String> mostPreferredSlots = slotPreferences.entrySet().stream()
+            .filter(entry -> entry.getValue() == maxPreferences)
+            .map(entry -> entry.getKey() + "=" + entry.getValue())
+            .collect(Collectors.toList());
+
+        return mostPreferredSlots;
+    }
+	
 
 	
 	/**
