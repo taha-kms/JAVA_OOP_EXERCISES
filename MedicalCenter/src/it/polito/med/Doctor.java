@@ -40,4 +40,8 @@ public class Doctor {
     public int getSlotNumber(String date){
         return this.dailySchedule.get(date).getSlotsSize();
     }
+
+    public Schedule getSchedule(String date){
+        return this.dailySchedule.get(date);
+    }
 }
