@@ -125,16 +125,19 @@ public class MedManager {
 	 * @return a map doc-id -> list of slots in the schedule
 	 */
 	public Map<String, List<String>> findSlots(String date, String speciality) {
-        Map<String, List<String>> result = new HashMap<>();
 
-        for(Doctor doctor: this.specialityMap.get(speciality)){
-            List<String> slots = doctor.getSchedules().get(date).getSlots();
-            String doctorId = doctor.getId();
+		Map<String, List<String>> result = new HashMap<>();
+		for (String id : this.getSpecialists(speciality)) {
 
-            result.put(doctorId, slots);
-        }
+			Schedule schedule = this.doctorsMap.get(id).getSchedule(date);
+			if (schedule != null) {
+				List<String> slots = new ArrayList<>(schedule.getSlots());
+				result.put(id, slots);	
+			}
+		}
 		return result;
 	}
+
 
 	/**
 	 * Define an appointment for a patient in an existing slot of a doctor's schedule
