@@ -1,6 +1,4 @@
-# OOP Lab 2 - Hydraulic System Simulation
-
-(the Italian version is available in file [README_it.md](README_it.md)).
+# Hydraulic System Simulation
 
 
 Design and implement a program to manage the simulation of a hydraulic system.
