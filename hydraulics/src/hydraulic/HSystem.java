@@ -1,5 +1,6 @@
 package hydraulic;
-
+import java.util.*;
+import java.util.stream.Collectors;
 /**
  * Main class that acts as a container of the elements for
  * the simulation of an hydraulics system 
@@ -7,6 +8,13 @@ package hydraulic;
  */
 public class HSystem {
 
+	private static final int MAX_ELEMENTS = 100;
+	private ArrayList<Element> elementsMap;
+
+
+	public HSystem() {
+		this.elementsMap = new ArrayList<>();
+	}
 // R1
 	/**
 	 * Adds a new element to the system
@@ -14,7 +22,9 @@ public class HSystem {
 	 * @param elem the new element to be added to the system
 	 */
 	public void addElement(Element elem){
-		//TODO: to be implemented
+		if (this.elementsMap.size() < MAX_ELEMENTS) {
+            this.elementsMap.add(elem);
+        }
 	}
 
 	/**
@@ -23,8 +33,7 @@ public class HSystem {
 	 * @return count of elements
 	 */
 	public int size() {
-        // TODO: to be implemented
-		return -1;
+		return this.elementsMap.size();
     }
 
 	/**
@@ -34,8 +43,7 @@ public class HSystem {
 	 * 							the number of added elements
 	 */
 	public Element[] getElements(){
-		//TODO: to be implemented
-		return null;
+		return this.elementsMap.toArray(new Element[this.elementsMap.size()]);
 	}
 
 // R4
