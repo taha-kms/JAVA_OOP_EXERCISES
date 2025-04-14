@@ -11,5 +11,6 @@ public class Sink extends Element {
 	 * @param name name of the sink element
 	 */
 	public Sink(String name) {
+		super(name);
 	}
 }

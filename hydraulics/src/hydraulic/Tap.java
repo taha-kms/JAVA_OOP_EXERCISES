@@ -14,6 +14,7 @@ public class Tap extends Element {
 	 * @param name name of the tap element
 	 */
 	public Tap(String name) {
+		super(name);
 	}
 
 	/**

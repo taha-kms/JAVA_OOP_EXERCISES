@@ -13,6 +13,7 @@ public class Source extends Element {
 	 * @param name name of the source element
 	 */
 	public Source(String name) {
+		super(name);
 	}
 
 	/**

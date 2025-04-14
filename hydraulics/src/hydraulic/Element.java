@@ -1,5 +1,6 @@
 package hydraulic;
 
+import java.util.ArrayList;
 
 /**
  * Represents the generic abstract element of an hydraulics system.
@@ -12,14 +13,22 @@ package hydraulic;
  * though all methods are defined to make subclass implementation easier.
  */
 public abstract class Element {
-	
+
+	private String name;
+    protected ArrayList<Element> outputs;
+
+
+	public Element(String name) {
+		this.name = name;
+		this.outputs = new ArrayList<>();
+	}
 	/**
 	 * getter method for the name of the element
 	 * 
 	 * @return the name of the element
 	 */
 	public String getName() {
-		return null;
+		return this.name;
 	}
 	
 	/**
@@ -32,7 +41,7 @@ public abstract class Element {
 	 * @param elem the element that will be placed downstream
 	 */
 	public void connect(Element elem) {
-		// does nothing by default
+		connect(elem, 0);
 	}
 	
 	/**
@@ -43,7 +52,11 @@ public abstract class Element {
 	 * @param index the output index that will be used for the connection
 	 */
 	public void connect(Element elem, int index){
-		// does nothing by default
+
+		while (outputs.size() <= index) {
+			outputs.add(null); // pad with nulls
+		}
+		outputs.set(index, elem);
 	}
 	
 	/**
@@ -52,7 +65,7 @@ public abstract class Element {
 	 * @return downstream element
 	 */
 	public Element getOutput(){
-		return null;
+		return outputs.isEmpty() ? null : outputs.get(0);
 	}
 
 	/**
@@ -61,7 +74,7 @@ public abstract class Element {
 	 * @return downstream element
 	 */
 	public Element[] getOutputs(){
-		return null;
+		return outputs.toArray(new Element[outputs.size()]);
 	}
 	
 	/**

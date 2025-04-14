@@ -14,6 +14,7 @@ public class Split extends Element {
 	 * @param name name of the split element
 	 */
 	public Split(String name) {
+		super(name);
 	}
 	
 }
