@@ -12,6 +12,7 @@ public class Source extends Element {
 
 	/**
 	 * constructor
+	 * 
 	 * @param name name of the source element
 	 */
 	public Source(String name) {
@@ -23,7 +24,7 @@ public class Source extends Element {
 	 *
 	 * @param flow flow of the source (in cubic meters per hour)
 	 */
-	public void setFlow(double flow){
+	public void setFlow(double flow) {
 		this.flow = flow;
 	}
 
@@ -43,6 +44,5 @@ public class Source extends Element {
 		if (getOutput() != null)
 			getOutput().simulate(flow, observer);
 	}
-	
 
 }

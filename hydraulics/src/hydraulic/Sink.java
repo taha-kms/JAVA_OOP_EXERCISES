@@ -8,6 +8,7 @@ public class Sink extends Element {
 
 	/**
 	 * Constructor
+	 * 
 	 * @param name name of the sink element
 	 */
 	public Sink(String name) {
@@ -28,6 +29,5 @@ public class Sink extends Element {
 	public void simulate(double inputFlow, SimulationObserver observer) {
 		observer.notifyFlow("Sink", getName(), inputFlow, SimulationObserver.NO_FLOW);
 	}
-
 
 }

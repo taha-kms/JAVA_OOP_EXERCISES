@@ -15,13 +15,13 @@ import java.util.ArrayList;
 public abstract class Element {
 
 	private String name;
-    protected ArrayList<Element> outputs;
-
+	protected ArrayList<Element> outputs;
 
 	public Element(String name) {
 		this.name = name;
 		this.outputs = new ArrayList<>();
 	}
+
 	/**
 	 * getter method for the name of the element
 	 * 
@@ -30,41 +30,42 @@ public abstract class Element {
 	public String getName() {
 		return this.name;
 	}
-	
+
 	/**
 	 * Connects this element to a given element.
 	 * The given element will be connected downstream of this element
 	 * 
-	 * In case of element with multiple outputs this method operates on the first one,
-	 * it is equivalent to calling {@code connect(elem,0)}. 
+	 * In case of element with multiple outputs this method operates on the first
+	 * one,
+	 * it is equivalent to calling {@code connect(elem,0)}.
 	 * 
 	 * @param elem the element that will be placed downstream
 	 */
 	public void connect(Element elem) {
 		connect(elem, 0);
 	}
-	
+
 	/**
 	 * Connects a specific output of this element to a given element.
 	 * The given element will be connected downstream of this element
 	 * 
-	 * @param elem the element that will be placed downstream
+	 * @param elem  the element that will be placed downstream
 	 * @param index the output index that will be used for the connection
 	 */
-	public void connect(Element elem, int index){
+	public void connect(Element elem, int index) {
 
 		while (outputs.size() <= index) {
 			outputs.add(null); // pad with nulls
 		}
 		outputs.set(index, elem);
 	}
-	
+
 	/**
 	 * Retrieves the single element connected downstream of this element
 	 * 
 	 * @return downstream element
 	 */
-	public Element getOutput(){
+	public Element getOutput() {
 		return outputs.isEmpty() ? null : outputs.get(0);
 	}
 
@@ -73,10 +74,10 @@ public abstract class Element {
 	 * 
 	 * @return downstream element
 	 */
-	public Element[] getOutputs(){
+	public Element[] getOutputs() {
 		return outputs.toArray(new Element[outputs.size()]);
 	}
-	
+
 	/**
 	 * Defines the maximum input flow acceptable for this element
 	 * 
@@ -86,30 +87,31 @@ public abstract class Element {
 		// does nothing by default
 	}
 
-	protected static String pad(String current, String down){
+	protected static String pad(String current, String down) {
 		int n = current.length();
-		final String fmt = "\n%"+n+"s";
-		return current + down.replace("\n", fmt.formatted("") );
+		final String fmt = "\n%" + n + "s";
+		return current + down.replace("\n", fmt.formatted(""));
 	}
 
 	@Override
-	public String toString(){
+	public String toString() {
 		String res = "[%s] ".formatted(getName());
 		Element[] out = getOutputs();
-		if( out != null){
+		if (out != null) {
 			StringBuilder buffer = new StringBuilder();
-			for(int i=0; i<out.length; ++i) {
-				if(i>0) buffer.append("\n");
-				if (out[i] == null) buffer.append("+-> *");
-				else buffer.append(pad("+-> ", out[i].toString()));
+			for (int i = 0; i < out.length; ++i) {
+				if (i > 0)
+					buffer.append("\n");
+				if (out[i] == null)
+					buffer.append("+-> *");
+				else
+					buffer.append(pad("+-> ", out[i].toString()));
 			}
-			res = pad(res,buffer.toString());
+			res = pad(res, buffer.toString());
 		}
 		return res;
 	}
 
 	public abstract void simulate(double inputFlow, SimulationObserver observer);
-
-
 
 }
