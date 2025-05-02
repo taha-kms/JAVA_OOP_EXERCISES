@@ -18,6 +18,7 @@ public class Multisplit extends Split {
 	 */
 	public Multisplit(String name, int numOutput) {
 		super(name);
+		
 	}
 	
 	/**
@@ -36,4 +37,21 @@ public class Multisplit extends Split {
 	public double[] getProportions() {
 		return this.proportions;
 	}
+
+	@Override
+	public void simulate(double inputFlow, SimulationObserver observer) {
+		double[] outFlows = new double[proportions.length];
+		for (int i = 0; i < proportions.length; i++) {
+			outFlows[i] = inputFlow * proportions[i];
+		}
+		observer.notifyFlow("Multisplit", getName(), inputFlow, outFlows);
+
+		Element[] outs = getOutputs();
+		for (int i = 0; i < proportions.length; i++) {
+			if (i < outs.length && outs[i] != null) {
+				outs[i].simulate(outFlows[i], observer);
+			}
+		}
+	}
+
 }

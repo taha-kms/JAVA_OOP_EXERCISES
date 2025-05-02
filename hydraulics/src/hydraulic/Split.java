@@ -16,5 +16,17 @@ public class Split extends Element {
 	public Split(String name) {
 		super(name);
 	}
+
+
+	@Override
+	public void simulate(double inputFlow, SimulationObserver observer) {
+		double outFlow = inputFlow / 2;
+		observer.notifyFlow("Split", getName(), inputFlow, outFlow, outFlow);
+		Element[] outs = getOutputs();
+		if (outs.length > 0 && outs[0] != null) outs[0].simulate(outFlow, observer);
+		if (outs.length > 1 && outs[1] != null) outs[1].simulate(outFlow, observer);
+	}
+	
+
 	
 }

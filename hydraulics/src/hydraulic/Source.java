@@ -35,4 +35,14 @@ public class Source extends Element {
 	public double getFlow() {
 		return this.flow;
 	}
+
+	@Override
+	public void simulate(double inputFlow, SimulationObserver observer) {
+		double flow = getFlow();
+		observer.notifyFlow("Source", getName(), SimulationObserver.NO_FLOW, flow);
+		if (getOutput() != null)
+			getOutput().simulate(flow, observer);
+	}
+	
+
 }

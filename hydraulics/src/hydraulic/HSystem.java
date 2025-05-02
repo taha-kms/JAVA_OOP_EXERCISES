@@ -61,48 +61,10 @@ public class HSystem {
 	public void simulate(SimulationObserver observer){
 		for (Element e : elementsMap) {
 			if (e instanceof Source) {
-				simulateFrom(e, ((Source)e).getFlow(), observer);
+				e.simulate(((Source) e).getFlow(), observer);
 			}
 		}
 	}
-
-	private void simulateFrom(Element elem, double inputFlow, SimulationObserver observer) {
-		if (elem instanceof Source) {
-			double flow = ((Source)elem).getFlow();
-			observer.notifyFlow("Source", elem.getName(), SimulationObserver.NO_FLOW, flow);
-			Element out = elem.getOutput();
-			if (out != null) simulateFrom(out, flow, observer);
-		} else if (elem instanceof Tap) {
-			Tap tap = (Tap)elem;
-			double output = tap.isOpen() ? inputFlow : 0;
-			observer.notifyFlow("Tap", tap.getName(), inputFlow, output);
-			Element out = tap.getOutput();
-			if (out != null) simulateFrom(out, output, observer);
-		} else if (elem instanceof Split) {
-			double outFlow = inputFlow / 2;
-			observer.notifyFlow("Split", elem.getName(), inputFlow, outFlow, outFlow);
-			Element[] outs = elem.getOutputs();
-			for (int i = 0; i < 2; i++) {
-				if (outs[i] != null) simulateFrom(outs[i], outFlow, observer);
-			}
-		} else if (elem instanceof Multisplit) {
-			Multisplit ms = (Multisplit) elem;
-			double[] props = ms.getProportions();
-			double[] outFlows = new double[props.length];
-			for (int i = 0; i < props.length; i++) {
-				outFlows[i] = inputFlow * props[i];
-			}
-			observer.notifyFlow("Multisplit", elem.getName(), inputFlow, outFlows);
-			Element[] outs = elem.getOutputs();
-			for (int i = 0; i < outs.length; i++) {
-				if (outs[i] != null) simulateFrom(outs[i], outFlows[i], observer);
-			}
-		} else if (elem instanceof Sink) {
-			observer.notifyFlow("Sink", elem.getName(), inputFlow, SimulationObserver.NO_FLOW);
-		}
-	}
-	
-
 
 // R6
 	/**

@@ -35,5 +35,15 @@ public class Tap extends Element {
 	public boolean isOpen() {
 		return this.open;
 	}
+
+	@Override
+	public void simulate(double inputFlow, SimulationObserver observer) {
+		double output = isOpen() ? inputFlow : 0;
+		observer.notifyFlow("Tap", getName(), inputFlow, output);
+		if (getOutput() != null)
+			getOutput().simulate(output, observer);
+	}
+	
+
 	
 }

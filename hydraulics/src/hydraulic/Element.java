@@ -108,5 +108,8 @@ public abstract class Element {
 		return res;
 	}
 
+	public abstract void simulate(double inputFlow, SimulationObserver observer);
+
+
 
 }

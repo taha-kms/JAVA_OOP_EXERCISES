@@ -24,4 +24,10 @@ public class Sink extends Element {
 		// Do nothing: sinks cannot have outputs
 	}
 
+	@Override
+	public void simulate(double inputFlow, SimulationObserver observer) {
+		observer.notifyFlow("Sink", getName(), inputFlow, SimulationObserver.NO_FLOW);
+	}
+
+
 }
