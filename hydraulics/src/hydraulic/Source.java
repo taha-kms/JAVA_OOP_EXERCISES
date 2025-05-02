@@ -8,6 +8,8 @@ package hydraulic;
  */
 public class Source extends Element {
 
+	private double flow = 0.0; // flow of the source (in cubic meters per hour)
+
 	/**
 	 * constructor
 	 * @param name name of the source element
@@ -22,7 +24,15 @@ public class Source extends Element {
 	 * @param flow flow of the source (in cubic meters per hour)
 	 */
 	public void setFlow(double flow){
-		// TODO: to be implemented
+		this.flow = flow;
 	}
 
+	/**
+	 * Returns the flow of the source
+	 * 
+	 * @return the flow of the source (in cubic meters per hour)
+	 */
+	public double getFlow() {
+		return this.flow;
+	}
 }

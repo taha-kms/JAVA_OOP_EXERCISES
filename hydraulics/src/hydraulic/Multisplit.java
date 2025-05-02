@@ -9,6 +9,8 @@ package hydraulic;
 
 public class Multisplit extends Split {
 
+	private double[] proportions; // proportions of the output flows w.r.t. the input flow
+
 	/**
 	 * Constructor
 	 * @param name the name of the multi-split element
@@ -28,7 +30,10 @@ public class Multisplit extends Split {
 	 * @param proportions the proportions of flow for each output
 	 */
 	public void setProportions(double... proportions) {
-		// TODO: to be implemented
+		this.proportions = proportions;
 	}
 	
+	public double[] getProportions() {
+		return this.proportions;
+	}
 }

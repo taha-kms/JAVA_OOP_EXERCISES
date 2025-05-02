@@ -9,6 +9,7 @@ package hydraulic;
 
 public class Tap extends Element {
 
+	private boolean open = true; // status of the tap (open or closed)
 	/**
 	 * Constructor
 	 * @param name name of the tap element
@@ -23,7 +24,16 @@ public class Tap extends Element {
 	 * @param open opening status of the tap
 	 */
 	public void setOpen(boolean open){
-		// TODO: to be implemented
+		this.open = open;
+	}
+
+	/**
+	 * Returns the status of the tap
+	 * 
+	 * @return true if the tap is open, false otherwise
+	 */
+	public boolean isOpen() {
+		return this.open;
 	}
 	
 }
