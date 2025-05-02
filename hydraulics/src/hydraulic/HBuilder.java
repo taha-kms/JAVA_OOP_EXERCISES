@@ -5,6 +5,14 @@ package hydraulic;
  */
 public class HBuilder {
 
+    private HSystem system = new HSystem();
+    private Element last;
+    private Split currentSplitter;
+    private Multisplit currentMultisplit;
+    private int currentOutputIndex = 0;
+    private Element[] lastPerOutput = new Element[0]; // track end of each output path
+
+
     /**
      * Add a source element with the given name
      * 
@@ -12,9 +20,12 @@ public class HBuilder {
      * @return the builder itself for chaining
      */
     public HBuilder addSource(String name) {
-        // TODO: to be implemented
+        Source src = new Source(name);
+        system.addElement(src);
+        last = src;
         return this;
     }
+    
 
     /**
      * returns the hydraulic system built with the previous operations
@@ -22,8 +33,7 @@ public class HBuilder {
      * @return the hydraulic system
      */
     public HSystem complete() {
-        // TODO: to be implemented
-        return null;
+        return system;
     }
 
     /**
@@ -33,7 +43,10 @@ public class HBuilder {
      * @return the builder itself for chaining
      */
     public HBuilder linkToTap(String name) {
-        // TODO: to be implemented
+        Tap tap = new Tap(name);
+        system.addElement(tap);
+        connectToCurrentOutput(tap);
+        last = tap;
         return this;
     }
 
@@ -44,7 +57,10 @@ public class HBuilder {
      * @return the builder itself for chaining
      */
     public HBuilder linkToSink(String name) {
-        // TODO: to be implemented
+        Sink sink = new Sink(name);
+        system.addElement(sink);
+        connectToCurrentOutput(sink);
+        last = sink;
         return this;
     }
 
@@ -55,7 +71,13 @@ public class HBuilder {
      * @return the builder itself for chaining
      */
     public HBuilder linkToSplit(String name) {
-        // TODO: to be implemented
+        Split split = new Split(name);
+        system.addElement(split);
+        connectToCurrentOutput(split);
+        last = split;
+        currentSplitter = split;
+        currentMultisplit = null;
+        currentOutputIndex = 0;
         return this;
     }
 
@@ -67,7 +89,13 @@ public class HBuilder {
      * @return the builder itself for chaining
      */
     public HBuilder linkToMultisplit(String name, int numOutput) {
-        // TODO: to be implemented
+        Multisplit ms = new Multisplit(name, numOutput);
+        system.addElement(ms);
+        connectToCurrentOutput(ms);
+        last = ms;
+        currentMultisplit = ms;
+        currentSplitter = null;
+        currentOutputIndex = 0;
         return this;
     }
 
@@ -80,9 +108,15 @@ public class HBuilder {
      * @return the builder itself for chaining
      */
     public HBuilder withOutputs() {
-        // TODO: to be implemented
+        if (currentSplitter != null) {
+            lastPerOutput = new Element[2]; // Split has 2 outputs
+        } else if (currentMultisplit != null) {
+            lastPerOutput = new Element[currentMultisplit.getOutputs().length];
+        }
+        currentOutputIndex = 0;
         return this;
     }
+    
 
     /**
      * inform the builder that the next element will be
@@ -92,10 +126,16 @@ public class HBuilder {
      * 
      * @return the builder itself for chaining
      */
-    public HBuilder then() {
-        // TODO: to be implemented
-        return this;
+public HBuilder then() {
+    currentOutputIndex++;
+    if (currentSplitter != null) {
+        last = currentSplitter;
+    } else if (currentMultisplit != null) {
+        last = currentMultisplit;
     }
+    return this;
+}
+
 
     /**
      * completes the definition of elements connected
@@ -104,9 +144,12 @@ public class HBuilder {
      * @return the builder itself for chaining
      */
     public HBuilder done() {
-        // TODO: to be implemented
+        currentSplitter = null;
+        currentMultisplit = null;
+        currentOutputIndex = 0;
         return this;
     }
+    
 
     /**
      * define the flow of the previous source
@@ -115,7 +158,9 @@ public class HBuilder {
      * @return the builder itself for chaining
      */
     public HBuilder withFlow(double flow) {
-        // TODO: to be implemented
+        if (last instanceof Source) {
+            ((Source) last).setFlow(flow);
+        }
         return this;
     }
 
@@ -126,7 +171,9 @@ public class HBuilder {
      * @return the builder itself for chaining
      */
     public HBuilder open() {
-        // TODO: to be implemented
+        if (last instanceof Tap) {
+            ((Tap) last).setOpen(true);
+        }
         return this;
     }
 
@@ -137,7 +184,9 @@ public class HBuilder {
      * @return the builder itself for chaining
      */
     public HBuilder closed() {
-        // TODO: to be implemented
+        if (last instanceof Tap) {
+            ((Tap) last).setOpen(false);
+        }
         return this;
     }
 
@@ -149,7 +198,9 @@ public class HBuilder {
      * @return the builder itself for chaining
      */
     public HBuilder withPropotions(double[] props) {
-        // TODO: to be implemented
+        if (last instanceof Multisplit) {
+            ((Multisplit) last).setProportions(props);
+        }
         return this;
     }
 
@@ -160,7 +211,23 @@ public class HBuilder {
      * @return the builder itself for chaining
      */
     public HBuilder maxFlow(double max) {
-        // TODO: to be implemented
+        last.setMaxFlow(max);
         return this;
     }
+
+
+    // --- Internal helper method ---
+
+    private void connectToCurrentOutput(Element target) {
+        if (currentSplitter != null) {
+            currentSplitter.connect(target, currentOutputIndex);
+        } else if (currentMultisplit != null) {
+            currentMultisplit.connect(target, currentOutputIndex);
+        } else if (last != null) {
+            last.connect(target);
+        }
+        last = target;
+    }
+    
+    
 }
