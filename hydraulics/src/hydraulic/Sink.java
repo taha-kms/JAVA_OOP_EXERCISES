@@ -13,4 +13,15 @@ public class Sink extends Element {
 	public Sink(String name) {
 		super(name);
 	}
+
+	@Override
+	public void connect(Element elem) {
+		// Do nothing: sinks cannot have outputs
+	}
+
+	@Override
+	public void connect(Element elem, int index) {
+		// Do nothing: sinks cannot have outputs
+	}
+
 }
