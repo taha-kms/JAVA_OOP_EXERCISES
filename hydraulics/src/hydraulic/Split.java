@@ -19,7 +19,8 @@ public class Split extends Element {
 	}
 
 	@Override
-	public void simulate(double inputFlow, SimulationObserver observer) {
+	public void simulate(double inputFlow, SimulationObserver observer, boolean checkMax) {
+		if(checkMax) checkFlow("Split", observer, inputFlow);
 		double outFlow = inputFlow / 2;
 		observer.notifyFlow("Split", getName(), inputFlow, outFlow, outFlow);
 		Element[] outs = getOutputs();

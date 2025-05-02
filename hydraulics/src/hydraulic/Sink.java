@@ -26,7 +26,8 @@ public class Sink extends Element {
 	}
 
 	@Override
-	public void simulate(double inputFlow, SimulationObserver observer) {
+	public void simulate(double inputFlow, SimulationObserver observer, boolean checkMax) {
+		if (checkMax) checkFlow("Sink", observer, inputFlow);
 		observer.notifyFlow("Sink", getName(), inputFlow, SimulationObserver.NO_FLOW);
 	}
 

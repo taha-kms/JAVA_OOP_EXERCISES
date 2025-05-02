@@ -126,7 +126,16 @@ public class HSystem {
 	 * system must be defined.
 	 */
 	public void simulate(SimulationObserver observer, boolean enableMaxFlowCheck) {
-		// TODO: to be implemented
+		for (Element e : elementsMap) {
+			if (e instanceof Source) {
+				double flow = ((Source)e).getFlow();
+				observer.notifyFlow("Source", e.getName(), SimulationObserver.NO_FLOW, flow);
+				Element out = e.getOutput();
+				if (out != null) {
+					out.simulate(flow, observer, enableMaxFlowCheck);
+				}
+			}
+		}
 	}
 
 	// R8

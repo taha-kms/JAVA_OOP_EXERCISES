@@ -41,17 +41,25 @@ public class Multisplit extends Split {
 	}
 
 	@Override
-	public void simulate(double inputFlow, SimulationObserver observer) {
+	public void simulate(double inputFlow, SimulationObserver observer, boolean checkMax) {
+		if (checkMax) {
+			checkFlow("Multisplit", observer, inputFlow);
+		}
+
+		// Compute output flows based on proportions
 		double[] outFlows = new double[proportions.length];
 		for (int i = 0; i < proportions.length; i++) {
 			outFlows[i] = inputFlow * proportions[i];
 		}
+
+		// Notify observer about this element's flow
 		observer.notifyFlow("Multisplit", getName(), inputFlow, outFlows);
 
+		// Simulate downstream elements
 		Element[] outs = getOutputs();
 		for (int i = 0; i < proportions.length; i++) {
 			if (i < outs.length && outs[i] != null) {
-				outs[i].simulate(outFlows[i], observer);
+				outs[i].simulate(outFlows[i], observer, checkMax);
 			}
 		}
 	}

@@ -38,11 +38,18 @@ public class Source extends Element {
 	}
 
 	@Override
-	public void simulate(double inputFlow, SimulationObserver observer) {
+	public void simulate(double inputFlow, SimulationObserver observer,boolean checkMax) {
+		if(checkMax) checkFlow("Source", observer, inputFlow);
 		double flow = getFlow();
 		observer.notifyFlow("Source", getName(), SimulationObserver.NO_FLOW, flow);
 		if (getOutput() != null)
 			getOutput().simulate(flow, observer);
 	}
+
+	@Override
+	public void setMaxFlow(double maxFlow) {
+		// Do nothing: source doesn't accept input
+	}
+
 
 }

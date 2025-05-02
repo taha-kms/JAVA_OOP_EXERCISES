@@ -16,6 +16,7 @@ public abstract class Element {
 
 	private String name;
 	protected ArrayList<Element> outputs;
+	private double maxFlow = Double.POSITIVE_INFINITY;
 
 	public Element(String name) {
 		this.name = name;
@@ -84,7 +85,11 @@ public abstract class Element {
 	 * @param maxFlow maximum allowed input flow
 	 */
 	public void setMaxFlow(double maxFlow) {
-		// does nothing by default
+		this.maxFlow = maxFlow;
+	}
+
+	public double getMaxFlow() {
+		return maxFlow;
 	}
 
 	protected static String pad(String current, String down) {
@@ -112,6 +117,16 @@ public abstract class Element {
 		return res;
 	}
 
-	public abstract void simulate(double inputFlow, SimulationObserver observer);
+	public abstract void simulate(double inputFlow, SimulationObserver observer, boolean checkMax);
 
+	
+	public void simulate(double inputFlow, SimulationObserver observer) {
+		simulate(inputFlow, observer, false); // default: no max flow check
+	}
+	
+	protected void checkFlow(String type, SimulationObserver observer, double inputFlow) {
+		if (inputFlow > maxFlow) {
+			observer.notifyFlowError(type, getName(), inputFlow, maxFlow);
+		}
+	}
 }

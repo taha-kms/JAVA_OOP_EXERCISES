@@ -38,12 +38,15 @@ public class Tap extends Element {
 		return this.open;
 	}
 
+
 	@Override
-	public void simulate(double inputFlow, SimulationObserver observer) {
+	public void simulate(double inputFlow, SimulationObserver observer, boolean checkMax) {
+		if (checkMax) checkFlow("Tap", observer, inputFlow);
 		double output = isOpen() ? inputFlow : 0;
 		observer.notifyFlow("Tap", getName(), inputFlow, output);
-		if (getOutput() != null)
-			getOutput().simulate(output, observer);
+		if (getOutput() != null) {
+			getOutput().simulate(output, observer, checkMax);
+		}
 	}
 
 }
