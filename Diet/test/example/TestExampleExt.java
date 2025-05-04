@@ -212,7 +212,7 @@ public class TestExampleExt {
 		Order o3 = takeaway.createOrder(u2, "Milano", "20:30");// r4
 		o3.addMenus("M2", 1).addMenus("M4", 2).addMenus("M5", 1);
 
-		Order o4 = takeaway.createOrder(u3, "Roma", "02:15");// r2
+		Order o4 = takeaway.createOrder(u3, "Roma", "2:15");// r2
 		o4.addMenus("M3", 4).addMenus("M5", 3);
 		o4.setPaymentMethod(PaymentMethod.CARD);
 
@@ -225,7 +225,7 @@ public class TestExampleExt {
 		Order o7 = takeaway.createOrder(u1, "Napoli", "11:47");// r1
 		o7.addMenus("M6", 2);
 
-		Order o8 = takeaway.createOrder(u1, "Napoli", "09:15");// r1
+		Order o8 = takeaway.createOrder(u1, "Napoli", "9:15");// r1
 		o8.addMenus("M1", 1);
 
 		o1.setStatus(OrderStatus.DELIVERED);

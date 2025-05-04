@@ -52,8 +52,8 @@ public class TestExampleBase {
         foods.defineRawMaterial("Nutella", 530, 6.8, 56, 31);
 
         Recipe r = foods.createRecipe("Pasta and Nutella");
+        
         assertNotNull("Missing recipe",r);
-
 
         r.addIngredient("Pasta", 70).
           addIngredient("Nutella", 30);
