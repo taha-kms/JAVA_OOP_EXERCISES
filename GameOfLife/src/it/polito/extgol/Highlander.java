@@ -14,28 +14,31 @@ public class Highlander extends Cell {
 
     @Override
     public Boolean evolve(int aliveNeighbors) {
-        boolean survivesGOL = super.evolve(aliveNeighbors);
+        boolean golSurvives = super.evolve(aliveNeighbors);
 
-        if (!survivesGOL) {
-            if (graceCounter < 2) {
+        if (this.isAlive) {
+            if (!golSurvives) {
                 graceCounter++;
-                if (this.isAlive)
+                if (graceCounter >= 3) {
+                    lifepoints -= 1;
+                    graceCounter = 0; // reset after real death
+                    return false;
+                } else {
                     lifepoints += 1;
-                return true;
+                    return true;
+                }
             } else {
                 graceCounter = 0;
-                if (this.isAlive)
-                    lifepoints -= 1;
-                return false;
-            }
-        } else {
-            graceCounter = 0;
-            if (this.isAlive) {
                 lifepoints += 1;
-            } else {
-                lifepoints = 0; // respawn
+                return true;
             }
-            return true;
+        } else { // DEAD
+            boolean respawn = aliveNeighbors == 3;
+            if (respawn) {
+                graceCounter = 0;
+                lifepoints = 0;
+            }
+            return respawn;
         }
     }
 
