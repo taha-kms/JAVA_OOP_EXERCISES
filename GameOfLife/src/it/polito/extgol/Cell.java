@@ -343,5 +343,9 @@ public class Cell implements Evolvable, Interactable {
     public CellMood getMood() {
         return this.cellMood;
     }
+    
+    public CellType getType() {
+        return this.cellType;
+    }
 
 }

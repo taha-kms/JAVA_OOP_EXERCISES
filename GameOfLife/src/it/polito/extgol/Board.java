@@ -241,21 +241,35 @@ public class Board {
      */
     public String visualize(Generation generation) {
         Set<Coord> alive = generation.getAliveCells().stream()
-                .map(Cell::getCoordinates)
-                .collect(Collectors.toSet());
+            .map(Cell::getCoordinates)
+            .collect(Collectors.toSet());
 
         StringBuilder sb = new StringBuilder();
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
-                sb.append(alive.contains(new Coord(x, y)) ? 'C' : '0');
+                Coord coord = new Coord(x, y);
+                Tile tile = getTile(coord);
+                Cell cell = tile.getCell();
+
+                if (alive.contains(coord)) {
+                    switch (cell.getType()) {
+                        case BASIC -> sb.append('C');
+                        case HIGHLANDER -> sb.append('H');
+                        case LONER -> sb.append('L');
+                        case SOCIAL -> sb.append('S');
+                        default -> sb.append('C'); // fallback for unexpected cases
+                    }
+                } else {
+                    sb.append('0');
+                }
             }
-            // use height here so you don't append a newline after the last row
             if (y < height - 1) {
                 sb.append('\n');
             }
         }
         return sb.toString();
     }
+
 
     // EXTENDED BEHAVIORS
 
