@@ -294,8 +294,41 @@ public class Generation {
      * @throws ExtendedGameOfLifeException if game, board, or cellTypesMap is null
      */
     public static Generation createInitial(Game game, Board board, Map<Coord, CellType> cellTypesMap) {
-        // TODO: create specialized factory
-        return null;
+        Objects.requireNonNull(game, "Game cannot be null");
+        Objects.requireNonNull(board, "Board cannot be null");
+        Objects.requireNonNull(cellTypesMap, "cellTypesMap cannot be null");
+
+        game.clearGenerations();
+        Generation init = new Generation(game, board, 0);
+
+        for (Map.Entry<Coord, CellType> entry : cellTypesMap.entrySet()) {
+            Coord coord = entry.getKey();
+            CellType type = entry.getValue();
+
+            Tile tile = board.getTile(coord);
+            Cell newCell;
+
+            switch (type) {
+                case HIGHLANDER -> newCell = new Highlander();
+                case LONER -> newCell = new Loner();
+                case SOCIAL -> newCell = new Social();
+                default -> newCell = new Cell(); // BASIC or fallback
+            }
+
+            newCell.setAlive(true);
+            newCell.setType(type);
+            newCell.setMood(CellMood.NAIVE); // default mood
+            newCell.cellCoord = coord;
+            newCell.board = board;
+            newCell.game = game;
+            newCell.tile = tile;
+
+            tile.setCell(newCell);
+        }
+
+        init.snapCells();
+        game.addGeneration(init, 0);
+        return init;
     }
 
     /**

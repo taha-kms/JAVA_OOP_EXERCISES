@@ -44,7 +44,7 @@ public class Cell implements Evolvable, Interactable {
             @AttributeOverride(name = "x", column = @Column(name = "cell_x", nullable = false)),
             @AttributeOverride(name = "y", column = @Column(name = "cell_y", nullable = false))
     })
-    private Coord cellCoord;
+    protected Coord cellCoord;
 
     /** Persisted alive/dead state */
     @Column(name = "is_alive", nullable = false)
