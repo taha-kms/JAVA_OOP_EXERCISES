@@ -50,11 +50,17 @@ public class ExtendedGameOfLife {
                 throw new IllegalStateException("Missing cell on tile " + tile);
             }
 
+            // NEW: Apply lifePointModifier from tile BEFORE evolution
+            if (c.isAlive()) {
+                int mod = tile.getLifePointModifier(); // tile is Interactable
+                c.setLifePoints(c.getLifePoints() + mod);
+            }
+
             int aliveNeighbors = c.countAliveNeighbors();
             boolean nextState = c.evolve(aliveNeighbors);
-
             nextStates.put(c, nextState);
         }
+
 
         // Step 2: Instantiate the next Generation based on current
         Generation nextGen = Generation.createNextGeneration(current);
