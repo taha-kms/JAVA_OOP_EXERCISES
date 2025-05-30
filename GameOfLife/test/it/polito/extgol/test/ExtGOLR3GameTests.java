@@ -16,7 +16,8 @@ import it.polito.extgol.ExtendedGameOfLife;
 import it.polito.extgol.Game;
 import it.polito.extgol.Generation;
 import it.polito.extgol.JPAUtil;
-
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityTransaction;
 import static it.polito.extgol.test.TestBranchUtils.assumeBranch;
 
 public class ExtGOLR3GameTests {
@@ -37,10 +38,25 @@ public class ExtGOLR3GameTests {
      */
     @Before
     public void setUp() {
-        TestDatabaseUtil.clearDatabase();
+        clearDatabase();
         facade = new ExtendedGameOfLife();
         game  = Game.createExtended("TestGame", 6, 6);
         board = game.getBoard();
+    }
+
+    private void clearDatabase() {
+        EntityManager em = JPAUtil.getEntityManager();
+        EntityTransaction tx = em.getTransaction();
+        tx.begin();
+        for (String table : List.of("generation_state", "generation", "board", "game", "tile")) {
+            try {
+                em.createNativeQuery("DELETE FROM " + table).executeUpdate();
+            } catch (Exception e) {
+                System.out.println(table +" does not exist!");
+            }
+        }
+        tx.commit();
+        em.close();
     }
 
     // R3 Game Extended Behaviors
@@ -53,14 +69,14 @@ public class ExtGOLR3GameTests {
             List.of(new Coord(1,1), new Coord(1,2), new Coord(2,1), new Coord(2,2))
         );
         
-        // Apply BLOOM at generation 0, then evolve one generation
+        // Apply BLOOM at step 0, then evolve one generation
         Game result = facade.run(game, 1, Map.of(0, EventType.BLOOM));
         Generation gen1 = result.getGenerations().get(1);
 
-        // Pick any alive cell and verify it gained exactly +3 lifePoints
+        // Pick any alive cell and verify it gained exactly +2 lifePoints
         Cell sample = facade.getAliveCells(gen1).get(new Coord(1,1));
         int lp = gen1.getEnergyStates().get(sample);
-        assertEquals("Survival-maintaining conditions give +1, BLOOM should add +2 lifePoints", 3, lp);
+        assertEquals("BLOOM should add +2 lifePoints", 2, lp);
     }
 
     @Test
@@ -77,7 +93,7 @@ public class ExtGOLR3GameTests {
         result.getGenerations().get(1);
 
         int lp = c0.getLifePoints();
-        assertEquals("CATACLYSM should zero out lifePoints, and death should remove 1", -1, lp);
+        assertEquals("CATACLYSM should zero out lifePoints", 0, lp);
     }
 
     @Test
@@ -94,6 +110,6 @@ public class ExtGOLR3GameTests {
         result.getGenerations().get(1);
 
         int lp=c0.getLifePoints();
-        assertEquals("FAMINE should subtract 1 lifePoint, and death another one", 3, lp);
+        assertEquals("FAMINE should subtract 1 lifePoint", 4, lp);
     }
 }

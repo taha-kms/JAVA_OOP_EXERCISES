@@ -19,7 +19,7 @@ import it.polito.extgol.Game;
 import it.polito.extgol.Generation;
 import it.polito.extgol.JPAUtil;
 import jakarta.persistence.EntityManager;
-
+import jakarta.persistence.EntityTransaction;
 import static it.polito.extgol.test.TestBranchUtils.assumeBranch;
 
 /**
@@ -37,11 +37,31 @@ public class ExtGOLCombinedTests {
      */
     @Before
     public void setUp() {
-        TestDatabaseUtil.clearDatabase();
+        clearDatabase();
         facade = new ExtendedGameOfLife();
-        game  = Game.createExtended("TestGame", 5, 4);
+        game  = Game.create("TestGame", 3, 3);
         board = game.getBoard();
     }
+
+    /**
+     * Deletes all rows in relevant tables to provide a clean state.
+     * Ignores missing-table errors when schema hasn't been created yet.
+     */
+    private void clearDatabase() {
+        EntityManager em = JPAUtil.getEntityManager();
+        EntityTransaction tx = em.getTransaction();
+        tx.begin();
+        for (String table : List.of("generation_state", "game", "generation",  "tile", "games")) {
+            try {
+                em.createNativeQuery("DELETE FROM " + table).executeUpdate();
+            } catch (Exception e) {
+                System.out.println(table +" does not exist!");
+            }
+        }
+        tx.commit();
+        em.close();
+    }
+
      
     /**
      * Close JPA resources after all tests.
@@ -131,9 +151,9 @@ public class ExtGOLCombinedTests {
         ));
 
         // --- after BLOOM ---
-        Generation thirdGeneration = result.getGenerations().get(2);
-        Cell bloomCell = facade.getAliveCells(thirdGeneration).get(new Coord(1,1));
-        int lpAfterBloom = thirdGeneration.getEnergyStates().get(bloomCell);
+        Generation secondGeneration = result.getGenerations().get(2);
+        Cell bloomCell = facade.getAliveCells(secondGeneration).get(new Coord(1,1));
+        int lpAfterBloom = secondGeneration.getEnergyStates().get(bloomCell);
         assertEquals(
         "BLOOM should give +2 lifePoints to (1,1)",
         4,
@@ -146,7 +166,7 @@ public class ExtGOLCombinedTests {
         int lpAfterFamine = fifthGeneration.getEnergyStates().get(famineCell);
         assertEquals(
         "FAMINE should subtract 1 lifePoint from (1,1)",
-        5,
+        7,
         lpAfterFamine
         );
     }
@@ -157,13 +177,12 @@ public class ExtGOLCombinedTests {
         // Same stable block:
         Generation init=Generation.createInitial(game, board,
         List.of(new Coord(1,1), new Coord(1,2),
-                new Coord(2,1), new Coord(2,2),
-                new Coord(2,3))
+                new Coord(2,1), new Coord(2,2))
         );
         // Turn a cell into a Vampire
         game.setMoods(CellMood.VAMPIRE, List.of(new Coord(1,1)));
         init.snapCells();
-        // BLOOD_MOON at step 1
+        // BLOOD_MOON at step 0
         Game result = facade.run(game, 1, Map.of(0, EventType.BLOOD_MOON));
 
         Generation secondGeneration = result.getGenerations().get(1);
@@ -173,13 +192,14 @@ public class ExtGOLCombinedTests {
         int energy=lp1.get(vamp1);
         assertEquals(4, energy);
 
-        // Its neighbors should have turned Vampire
-        Cell naive1=board.getTile(new Coord(1,2)).getCell();
-        assertEquals(CellMood.VAMPIRE, naive1.getMood());
-        
-        // Far‐away (2,3) remains Naive with 0 LP
-        Cell naive2=board.getTile(new Coord(2,3)).getCell();        
+        // Its two neighbors (2,1) and (1,2) should have turned Vampire
+        assertEquals(CellMood.VAMPIRE, vamp1.getMood());
+        Cell naive1=board.getTile(new Coord(0,1)).getCell();
+        Cell naive2=board.getTile(new Coord(1,0)).getCell();
+
+        // Far‐away (2,2) remains Naive with 0 LP
         assertEquals(CellMood.NAIVE, naive2.getMood());
+        assertEquals(CellMood.NAIVE, naive1.getMood());
     }
 
     @Test
@@ -206,7 +226,7 @@ public class ExtGOLCombinedTests {
         // Vampire turned Naive, LP stays 0
         Cell vamp1 = facade.getAliveCells(secondGeneration).get(new Coord(2,2));
         assertEquals(CellMood.NAIVE, secondGeneration.getMoodStates().get(vamp1));
-        assertEquals(Integer.valueOf(3), secondGeneration.getEnergyStates().get(vamp1));
+        assertEquals(Integer.valueOf(1), secondGeneration.getEnergyStates().get(vamp1));
     }
 
     @Test

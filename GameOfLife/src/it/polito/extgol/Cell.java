@@ -78,7 +78,6 @@ public class Cell implements Evolvable, Interactable {
      * Constructs a new Cell at given coordinates, defaulting to dead.
      * 
      * @param coord the cell's coordinates
-     * 
      */
     public Cell(Coord tileCoord) {
         this.cellCoord = tileCoord;

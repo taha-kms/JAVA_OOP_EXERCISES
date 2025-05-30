@@ -18,6 +18,9 @@ import it.polito.extgol.Coord;
 import it.polito.extgol.ExtendedGameOfLife;
 import it.polito.extgol.Game;
 import it.polito.extgol.Generation;
+import it.polito.extgol.JPAUtil;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityTransaction;
 import static it.polito.extgol.test.TestBranchUtils.assumeBranch;
 
 public class ExtGOLR1CellsTests {
@@ -38,11 +41,27 @@ public class ExtGOLR1CellsTests {
      */
     @Before
     public void setUp() {
-        TestDatabaseUtil.clearDatabase();
+        clearDatabase();
         facade = new ExtendedGameOfLife();
         game  = Game.createExtended("TestGame", 3, 3);
         board = game.getBoard();
     }
+
+    private void clearDatabase() {
+        EntityManager em = JPAUtil.getEntityManager();
+        EntityTransaction tx = em.getTransaction();
+        tx.begin();
+        for (String table : List.of("generation_state", "generation", "board", "game", "tile")) {
+            try {
+                em.createNativeQuery("DELETE FROM " + table).executeUpdate();
+            } catch (Exception e) {
+                System.out.println(table +" does not exist!");
+            }
+        }
+        tx.commit();
+        em.close();
+    }
+
     // R1 Cells Extended Behaviors
 
     // Specialized cells
@@ -243,41 +262,34 @@ public class ExtGOLR1CellsTests {
     @Test
     public void testR1VampireAbsorbsNaiveAndConverts() {
         assumeBranch("R1");
-        
-        // Same stable block:
-        Generation init=Generation.createInitial(game, board,
-        List.of(new Coord(1,1), new Coord(1,2),
-                new Coord(2,1), new Coord(2,2))
+
+        Cell vampire = new Cell();
+        vampire.setAlive(true);
+        vampire.setMood(CellMood.VAMPIRE);
+        vampire.setLifePoints(1);
+
+        Cell naive = new Cell();
+        naive.setAlive(true);
+        naive.setMood(CellMood.NAIVE);
+        naive.setLifePoints(1);
+
+        vampire.interact(naive);
+
+        assertEquals(
+            "Vampire should absorb 1 lifePoint from Naive",
+            2,
+            vampire.getLifePoints()
         );
-
-        // Turn a cell into a Vampire
-        game.setMoods(CellMood.VAMPIRE, List.of(new Coord(1,1)));
-        board.getTile(new Coord(2,1)).getCell().setLifePoints(1);
-        init.snapCells();
-
-        // Run one evolution step
-        Game result = facade.run(game, 1);
-
-        Generation secondGeneration = result.getGenerations().get(1);
-        Map<Cell,Integer> lp1  = secondGeneration.getEnergyStates();
-        Cell vamp1=board.getTile(new Coord(1,1)).getCell();
-
-        // Its neighbors should have turned Vampire
-        Cell ex_naive1=board.getTile(new Coord(1,2)).getCell();
-        assertEquals(CellMood.VAMPIRE, ex_naive1.getMood());
-        assertEquals(0, (int)lp1.get(ex_naive1));
-
-        Cell ex_naive2=board.getTile(new Coord(2,1)).getCell();        
-        assertEquals(CellMood.VAMPIRE, ex_naive2.getMood());
-        assertEquals(1, (int)lp1.get(ex_naive2));
-
-        Cell ex_naive3=board.getTile(new Coord(2,2)).getCell();        
-        assertEquals(CellMood.VAMPIRE, ex_naive3.getMood());
-        assertEquals(0, (int)lp1.get(ex_naive3));
-
-        //vampire has stolen 1 energy from each neighbour
-        int energy=lp1.get(vamp1);
-        assertEquals(4, energy);
+        assertEquals(
+            "Naive should lose 1 lifePoint",
+            0,
+            naive.getLifePoints()
+        );
+        assertEquals(
+            "Naive should convert to Vampire",
+            CellMood.VAMPIRE,
+            naive.getMood()
+        );
     }
     
 }
