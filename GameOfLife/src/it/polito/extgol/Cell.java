@@ -2,6 +2,8 @@ package it.polito.extgol;
 
 import java.util.ArrayList;
 import java.util.List;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.EnumType;
 
 import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.AttributeOverrides;
@@ -51,6 +53,17 @@ public class Cell implements Evolvable, Interactable {
     /** Persisted lifepoints (default 0) */
     @Column(name = "lifepoints", nullable = false)
     protected Integer lifepoints = 0;
+
+    /** Extended cell type for custom evolution logic */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "cell_type", nullable = false)
+    protected CellType cellType = CellType.BASIC;
+
+    /** Cell interaction mood (NAIVE, HEALER, VAMPIRE) */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "cell_mood", nullable = false)
+    protected CellMood cellMood = CellMood.NAIVE;
+
 
     /** Reference to the parent board (read-only). */
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -258,8 +271,7 @@ public class Cell implements Evolvable, Interactable {
      * @return the number of life points the cell currently has
      */
     public int getLifePoints() {
-        // TODO Auto-generated method stub
-        return 0;
+        return this.lifepoints;
     }
 
     /**
@@ -268,7 +280,7 @@ public class Cell implements Evolvable, Interactable {
      * @param lifePoints the new number of life points to assign to the cell
      */
     public void setLifePoints(int lifePoints) {
-        // TODO Auto-generated method stub
+        this.lifepoints = lifePoints;
     }
 
     /**
@@ -280,9 +292,30 @@ public class Cell implements Evolvable, Interactable {
      * @param cell the Cell object to interact with
      */
     @Override
-    public void interact(Cell otherCell) {
-        // TODO Auto-generated method stub
+    public void interact(Cell other) {
+        if (this.cellMood == CellMood.HEALER) {
+            if (other.cellMood == CellMood.NAIVE) {
+                other.lifepoints += 1;
+            } else if (other.cellMood == CellMood.VAMPIRE) {
+                if (this.lifepoints > 0) {
+                    this.lifepoints -= 1;
+                    other.lifepoints += 1;
+                }
+            }
+        } else if (this.cellMood == CellMood.VAMPIRE) {
+            if (other.cellMood == CellMood.NAIVE || other.cellMood == CellMood.HEALER) {
+                if (other.lifepoints > 0) {
+                    this.lifepoints += 1;
+                    other.lifepoints -= 1;
+                }
+                if (other.cellMood == CellMood.NAIVE) {
+                    other.cellMood = CellMood.VAMPIRE;
+                }
+            }
+        }
+        // NAIVE cells or unhandled cases = no effect
     }
+
 
     /**
      * Assigns a specific cell type to this cell, influencing its behavior.
@@ -290,7 +323,7 @@ public class Cell implements Evolvable, Interactable {
      * @param t the CellType to set (e.g., BASIC, HIGHLANDER, LONER, SOCIAL)
      */
     public void setType(CellType t) {
-        // TODO Auto-generated method stub
+        this.cellType = t;
     }
 
     /**
@@ -299,7 +332,7 @@ public class Cell implements Evolvable, Interactable {
      * @param mood the CellMood to assign (NAIVE, HEALER, or VAMPIRE)
      */
     public void setMood(CellMood mood) {
-        // TODO Auto-generated method stub
+        this.cellMood = mood;
     }
 
     /**
@@ -308,8 +341,7 @@ public class Cell implements Evolvable, Interactable {
      * @return the CellMood representing the cell’s interaction style
      */
     public CellMood getMood() {
-        // TODO Auto-generated method stub
-        return null;
+        return this.cellMood;
     }
 
 }
