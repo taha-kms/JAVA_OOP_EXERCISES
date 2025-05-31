@@ -6,13 +6,16 @@ import java.util.List;
 import java.util.Map;
 
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.MapKeyColumn;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.OrderColumn;
@@ -36,36 +39,33 @@ public class Game {
     /**
      * Human-readable name for this game instance.
      */
-     @Column(nullable = false, unique = true)
+    @Column(nullable = false, unique = true)
     private String name;
+
+    @ElementCollection
+    @CollectionTable(name = "event_schedule", joinColumns = @JoinColumn(name = "game_id"))
+    @MapKeyColumn(name = "generation_step")
+    @Column(name = "event_type")
+    private Map<Integer, EventType> eventMapInternal = new HashMap<>();
 
     /**
      * The board on which this game is played.
      *
-     * One board per game; cascade so the board is persisted/removed along with the game.  
-     * Stored in TILE table as board_id FK.  
+     * One board per game; cascade so the board is persisted/removed along with the
+     * game.
+     * Stored in TILE table as board_id FK.
      */
-    @OneToOne(
-        cascade = CascadeType.ALL,
-        orphanRemoval = true,
-        fetch = FetchType.LAZY,
-        optional = false
-        )
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "board_id", nullable = false, unique = true)
     private Board board;
 
     /**
      * List of all generations in this game, including the initial.
      * 
-     * All generations (including initial) in time order.  
+     * All generations (including initial) in time order.
      * Uses an ORDER_COLUMN so the DB keeps the sequence.
      */
-    @OneToMany(
-      mappedBy       = "game",
-      cascade        = CascadeType.ALL,
-      orphanRemoval  = true,
-      fetch          = FetchType.LAZY
-    )
+    @OneToMany(mappedBy = "game", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @OrderColumn(name = "generation_index")
     private List<Generation> generations = new ArrayList<>();
 
@@ -103,7 +103,8 @@ public class Game {
 
     /**
      * Factory method to create and fully initialize a Game instance.
-     * Uses a protected constructor to set the name, builds a Board of the given size,
+     * Uses a protected constructor to set the name, builds a Board of the given
+     * size,
      * sets up the first Generation, and returns the ready-to-run Game.
      *
      * @param name   the human-readable name for this game instance
@@ -116,14 +117,15 @@ public class Game {
         Board board = new Board(width, height, game);
         game.setBoard(board);
         Generation.createInitial(game, board);
-        
+
         return game;
     }
 
     /**
      * Factory method to create and fully initialize an extended Game instance.
      * Creates a Game with the given name, constructs an extended Board using
-     * specialized tiles and default cell settings, and initializes the first Generation.
+     * specialized tiles and default cell settings, and initializes the first
+     * Generation.
      *
      * @param name   the human-readable name for this game instance
      * @param width  the number of columns for the game board
@@ -135,11 +137,11 @@ public class Game {
         Board board = Board.createExtended(width, height, game);
         game.setBoard(board);
         Generation.createInitial(game, board);
-        
+
         return game;
     }
 
-     /**
+    /**
      * Appends a new Generation to the end of this game’s timeline.
      * Sets the generation’s back-reference to this Game before adding.
      *
@@ -165,16 +167,19 @@ public class Game {
 
     /**
      * Removes all generations from this Game’s history.
-     * After clearing, the game will have no recorded generations until new ones are added.
+     * After clearing, the game will have no recorded generations until new ones are
+     * added.
      */
     public void clearGenerations() {
         generations.clear();
     }
 
     /**
-     * Retrieves the full history of generations in this game, in chronological order.
+     * Retrieves the full history of generations in this game, in chronological
+     * order.
      *
-     * @return a List of Generation instances representing each step in the simulation
+     * @return a List of Generation instances representing each step in the
+     *         simulation
      */
     public List<Generation> getGenerations() {
         return generations;
@@ -241,7 +246,50 @@ public class Game {
      * @param cell  the Cell instance to which the event should be applied
      */
     public void unrollEvent(EventType event, Cell cell) {
-        // TODO: implement event application logic
+        if (cell == null)
+            return;
+
+        switch (event) {
+            case BLOOM -> {
+                if (cell.isAlive()) {
+                    cell.setLifePoints(cell.getLifePoints() + 2);
+                }
+            }
+            case FAMINE -> {
+                if (cell.isAlive()) {
+                    cell.setLifePoints(cell.getLifePoints() - 1);
+                }
+            }
+            case CATACLYSM -> {
+                if (cell.isAlive()) {
+                    cell.setLifePoints(0);
+                }
+            }
+            case BLOOD_MOON -> {
+                if (cell.getMood() == CellMood.VAMPIRE && cell.isAlive()) {
+                    for (Tile neighbor : cell.getNeighbors()) {
+                        Cell other = neighbor.getCell();
+                        if (other != null && other.isAlive()) {
+                            CellMood otherMood = other.getMood();
+                            if (otherMood == CellMood.NAIVE || otherMood == CellMood.HEALER) {
+                                if (other.getLifePoints() > 0) {
+                                    cell.setLifePoints(cell.getLifePoints() + 1);
+                                    other.setLifePoints(other.getLifePoints() - 1);
+                                    other.setMood(CellMood.VAMPIRE);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            case SANCTUARY -> {
+                if (cell.getMood() == CellMood.HEALER && cell.isAlive()) {
+                    cell.setLifePoints(cell.getLifePoints() + 1);
+                } else if (cell.getMood() == CellMood.VAMPIRE) {
+                    cell.setMood(CellMood.NAIVE);
+                }
+            }
+        }
     }
 
     /**
@@ -252,7 +300,18 @@ public class Game {
      * @param targetCoordinates the list of coordinates of cells to update
      */
     public void setMood(CellMood mood, List<Coord> targetCoordinates) {
-        // TODO: implement mood assignment for specified cells
+        if (targetCoordinates == null || mood == null)
+            return;
+
+        for (Coord coord : targetCoordinates) {
+            Tile tile = board.getTile(coord);
+            if (tile != null) {
+                Cell cell = tile.getCell();
+                if (cell != null) {
+                    cell.setMood(mood);
+                }
+            }
+        }
     }
 
     /**
@@ -263,7 +322,15 @@ public class Game {
      * @param coordinates the list of cell coordinates to update
      */
     public void setMoods(CellMood mood, List<Coord> coordinates) {
-        // TODO: implement moods assignment for specified coordinates
+        for (Coord coord : coordinates) {
+            Tile tile = board.getTile(coord);
+            if (tile != null) {
+                Cell cell = tile.getCell();
+                if (cell != null) {
+                    cell.setMood(mood);
+                }
+            }
+        }
     }
 
     /**
@@ -273,8 +340,7 @@ public class Game {
      * @return a mutable Map from generation step to EventType
      */
     public Map<Integer, EventType> getEventMapInternal() {
-        // TODO: return the actual event schedule map
-        return new HashMap<>();
+        return eventMapInternal;
     }
 
     /**
@@ -287,7 +353,7 @@ public class Game {
      * @return an immutable Map from generation step to EventType
      */
     public static Map<Integer, EventType> loadEvents(Game game) {
-        // TODO: implement repository loading
-        return null; 
+        return Map.copyOf(game.getEventMapInternal());
     }
+
 }

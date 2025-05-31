@@ -379,9 +379,10 @@ public class Board {
      */
     public IntSummaryStatistics energyStatistics(Generation gen) {
         return gen.getEnergyStates().values().stream()
-                .mapToInt(Integer::intValue)
-                .summaryStatistics();
+            .mapToInt(Integer::intValue)
+            .summaryStatistics();
     }
+
 
     /**
      * Returns a time series of energy statistics for each generation step in
@@ -397,11 +398,11 @@ public class Board {
 
         for (int i = fromStep; i <= toStep; i++) {
             Generation gen = generations.get(i);
-            IntSummaryStatistics stats = energyStatistics(gen);
-            statsMap.put(i, stats);
+            statsMap.put(i, energyStatistics(gen));
         }
 
         return statsMap;
     }
+
 
 }
