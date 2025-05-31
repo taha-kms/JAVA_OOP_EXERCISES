@@ -338,9 +338,13 @@ public class Generation {
      * @return a Map from Cell to its Integer lifePoints value
      */
     public Map<Cell, Integer> getEnergyStates() {
-        // TODO: create energy states getter
-        return null;
+        return board.getCellSet().stream()
+            .collect(Collectors.toMap(
+                cell -> cell,
+                Cell::getLifePoints
+            ));
     }
+
 
     /**
      * Returns an immutable snapshot of each cell’s alive/dead state.

@@ -1,5 +1,6 @@
 package it.polito.extgol;
 
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.IntSummaryStatistics;
@@ -66,6 +67,8 @@ public class Board {
     @MapKey(name = "tileCoord")
     private Map<Coord, Tile> tiles = new HashMap<>();
 
+
+    
     /**
      * Default constructor required by JPA.
      */
@@ -241,8 +244,8 @@ public class Board {
      */
     public String visualize(Generation generation) {
         Set<Coord> alive = generation.getAliveCells().stream()
-            .map(Cell::getCoordinates)
-            .collect(Collectors.toSet());
+                .map(Cell::getCoordinates)
+                .collect(Collectors.toSet());
 
         StringBuilder sb = new StringBuilder();
         for (int y = 0; y < height; y++) {
@@ -269,7 +272,6 @@ public class Board {
         }
         return sb.toString();
     }
-
 
     // EXTENDED BEHAVIORS
 
@@ -299,8 +301,7 @@ public class Board {
      * @return the count of alive cells in gen
      */
     public Integer countCells(Generation generation) {
-        // TODO: count and return the number of cells where isAlive == true
-        return -1;
+        return generation.getAliveCells().size();
     }
 
     /**
@@ -311,8 +312,11 @@ public class Board {
      * @return the Cell with maximum lifePoints, or null if no cells are alive
      */
     public Cell getHighestEnergyCell(Generation gen) {
-        // TODO: locate and return the highest-energy cell per the spec
-        return null;
+        return gen.getAliveCells().stream()
+                .max(Comparator.comparingInt(Cell::getLifePoints)
+                        .thenComparingInt(Cell::getY)
+                        .thenComparingInt(Cell::getX))
+                .orElse(null);
     }
 
     /**
@@ -322,8 +326,8 @@ public class Board {
      * @return a Map from lifePoints value to the List of Cells having that energy
      */
     public Map<Integer, List<Cell>> getCellsByEnergyLevel(Generation gen) {
-        // TODO: build and return grouping of alive cells by lifePoints
-        return null;
+        return gen.getAliveCells().stream()
+                .collect(Collectors.groupingBy(Cell::getLifePoints));
     }
 
     /**
@@ -333,8 +337,11 @@ public class Board {
      * @return a Map from CellType to the count of alive cells of that type
      */
     public Map<CellType, Integer> countCellsByType(Generation gen) {
-        // TODO: query or iterate to count alive cells by CellType
-        return null;
+
+        return gen.getAliveCells().stream()
+                .collect(Collectors.groupingBy(
+                        Cell::getType,
+                        Collectors.reducing(0, e -> 1, Integer::sum)));
     }
 
     /**
@@ -345,8 +352,10 @@ public class Board {
      * @return a List of the top n Cells by lifePoints, in descending order
      */
     public List<Cell> topEnergyCells(Generation gen, int n) {
-        // TODO: sort alive cells by lifePoints and return the first n
-        return null;
+        return gen.getAliveCells().stream()
+                .sorted(Comparator.comparingInt(Cell::getLifePoints).reversed())
+                .limit(n)
+                .toList();
     }
 
     /**
@@ -357,8 +366,8 @@ public class Board {
      *         neighbors
      */
     public Map<Integer, List<Cell>> groupByAliveNeighborCount(Generation gen) {
-        // TODO: group alive cells based on countAliveNeighbors()
-        return null;
+        return gen.getAliveCells().stream()
+                .collect(Collectors.groupingBy(Cell::countAliveNeighbors));
     }
 
     /**
@@ -369,8 +378,9 @@ public class Board {
      * @return an IntSummaryStatistics with aggregated lifePoints metrics
      */
     public IntSummaryStatistics energyStatistics(Generation gen) {
-        // TODO: collect lifePoints of all alive cells into an IntSummaryStatistics
-        return null;
+        return gen.getEnergyStates().values().stream()
+                .mapToInt(Integer::intValue)
+                .summaryStatistics();
     }
 
     /**
@@ -382,7 +392,16 @@ public class Board {
      * @return a Map from generation step index to its IntSummaryStatistics
      */
     public Map<Integer, IntSummaryStatistics> getTimeSeriesStats(int fromStep, int toStep) {
-        // TODO: iterate generations in range and compute energyStatistics for each
-        return null;
+        Map<Integer, IntSummaryStatistics> statsMap = new HashMap<>();
+        List<Generation> generations = this.game.getGenerations();
+
+        for (int i = fromStep; i <= toStep; i++) {
+            Generation gen = generations.get(i);
+            IntSummaryStatistics stats = energyStatistics(gen);
+            statsMap.put(i, stats);
+        }
+
+        return statsMap;
     }
+
 }
